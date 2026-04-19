@@ -249,135 +249,51 @@
     </div>
 </div>
 
-<script>
-    let imoveis = JSON.parse(localStorage.getItem('luxuryImoveis')) || [];
-    let fotosTemp = [];
-    let imovelAtual = null;
-    let fotoIndice = 0;
-    let isAdmin = false;
+<script type="module">
+    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-    function verificarSenha() {
-        if(document.getElementById('senhaAdmin').value === '123') {
-            isAdmin = true;
-            document.getElementById('main-body').classList.add('is-admin');
-            fecharModal('modal-login');
-            renderizar();
-        } else { alert("Senha Incorreta!"); }
-        document.getElementById('senhaAdmin').value = '';
-    }
+const SUPABASE_URL = 'https://ohjtosiyfwxzkgeewizv.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9oanRvc2l5Znd4emtnZWV3aXp2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2MjA4MzcsImV4cCI6MjA5MjE5NjgzN30.4d_NcCXDUMq9JdAETvssI8bv5WY3c5F4hzEVnL9XjdY';
 
-    async function comprimirImagem(file) {
-        return new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = (e) => {
-                const img = new Image();
-                img.src = e.target.result;
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    const width = 800;
-                    const scale = width / img.width;
-                    canvas.width = width;
-                    canvas.height = img.height * scale;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    resolve(canvas.toDataURL('image/jpeg', 0.8));
-                };
-            };
-        });
-    }
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    document.getElementById('uploadFotos').addEventListener('change', async function(e) {
-        const btn = document.getElementById('btn-publicar');
-        btn.disabled = true;
-        btn.innerText = "PROCESSANDO...";
-        fotosTemp = [];
-        for (let file of e.target.files) { fotosTemp.push(await comprimirImagem(file)); }
-        document.getElementById('status-fotos').innerText = fotosTemp.length + " fotos carregadas.";
-        btn.disabled = false;
-        btn.innerText = "Confirmar";
-    });
+let imoveis = [];
+let fotosTemp = [];
 
-    function salvarImovel() {
-        const index = parseInt(document.getElementById('edit-index').value);
-        const dados = {
-            cidade: document.getElementById('cidade').value,
-            quartos: document.getElementById('quartos').value,
-            unidades: document.getElementById('unidades').value,
-            video: document.getElementById('linkVideo').value,
-            fotos: fotosTemp
-        };
-        if(!dados.cidade || dados.fotos.length === 0) { alert("Preencha os campos!"); return; }
-        if(index !== -1) imoveis[index] = dados;
-        else imoveis.push(dados);
-        localStorage.setItem('luxuryImoveis', JSON.stringify(imoveis));
+// Função para buscar imóveis no Supabase
+async function carregarImoveis() {
+    const { data, error } = await supabase.from('imoveis').select('*');
+    if (data) {
+        imoveis = data;
         renderizar();
+    } else {
+        console.error("Erro ao carregar:", error);
+    }
+}
+
+// Função para salvar no Supabase
+async function salvarImovel() {
+    const dados = {
+        cidade: document.getElementById('cidade').value,
+        quartos: document.getElementById('quartos').value,
+        unidades: document.getElementById('unidades').value,
+        video: document.getElementById('linkVideo').value,
+        fotos: fotosTemp
+    };
+
+    const { error } = await supabase.from('imoveis').insert([dados]);
+    
+    if (error) {
+        alert("Erro: " + error.message);
+    } else {
+        alert("Salvo na nuvem!");
+        carregarImoveis();
         fecharModal('modal-add');
     }
+}
 
-    function editarImovel(index) {
-        const im = imoveis[index];
-        abrirModal('modal-add');
-        document.getElementById('edit-index').value = index;
-        document.getElementById('cidade').value = im.cidade;
-        document.getElementById('quartos').value = im.quartos;
-        document.getElementById('unidades').value = im.unidades;
-        document.getElementById('linkVideo').value = im.video;
-        fotosTemp = [...im.fotos];
-        document.getElementById('status-fotos').innerText = "Mantendo fotos salvas.";
-    }
-
-    function excluirImovel(index) {
-        if(confirm("Deseja excluir?")) {
-            imoveis.splice(index, 1);
-            localStorage.setItem('luxuryImoveis', JSON.stringify(imoveis));
-            renderizar();
-        }
-    }
-
-    function renderizar() {
-        const grid = document.getElementById('lista-imoveis');
-        grid.innerHTML = imoveis.map((im, i) => `
-            <div class="card">
-                <div class="admin-controls">
-                    <button class="btn-tool" onclick="editarImovel(${i})">✎</button>
-                    <button class="btn-tool" onclick="excluirImovel(${i})">🗑</button>
-                </div>
-                <img src="${im.fotos[0]}" onclick="prepararEscolha(${i})">
-                <div class="card-info">
-                    <h3>${im.cidade}</h3>
-                    <p>${im.quartos} SUÍTES • ${im.unidades} VAGAS</p>
-                </div>
-            </div>
-        `).join('');
-    }
-
-    function abrirModal(id) { 
-        if(id === 'modal-add' && document.getElementById('edit-index').value === "-1") limparForm();
-        document.getElementById(id).style.display = 'flex'; 
-    }
-    function fecharModal(id) { document.getElementById(id).style.display = 'none'; }
-    function limparForm() { document.getElementById('cidade').value = ''; document.getElementById('uploadFotos').value = ''; fotosTemp = []; document.getElementById('status-fotos').innerText = ''; }
-
-    function prepararEscolha(index) {
-        imovelAtual = imoveis[index];
-        abrirModal('modal-escolha');
-        document.getElementById('btn-ver-video').onclick = () => window.open(imovelAtual.video, '_blank');
-        document.getElementById('btn-ver-fotos').onclick = () => {
-            fecharModal('modal-escolha');
-            fotoIndice = 0;
-            document.getElementById('carousel-view').style.display = 'flex';
-            document.getElementById('carousel-img').src = imovelAtual.fotos[0];
-            abrirModal('modal-carousel');
-        };
-    }
-
-    function mudarFoto(dir) {
-        fotoIndice = (fotoIndice + dir + imovelAtual.fotos.length) % imovelAtual.fotos.length;
-        document.getElementById('carousel-img').src = imovelAtual.fotos[fotoIndice];
-    }
-
-    renderizar();
+// Chama a função ao abrir o site
+carregarImoveis();
 </script>
 </body>
 </html>
