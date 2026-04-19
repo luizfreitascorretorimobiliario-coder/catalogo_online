@@ -76,59 +76,41 @@
     let imoveis = [];
     let isAdmin = false;
 
-    window.carregarImoveis = async () => {
-        const { data } = await supabase.from('imoveis').select('*');
-        imoveis = data || [];
-        renderizar();
-    }
+    // ... (mantenha o import e o setup do supabase como está)
 
-    window.renderizar = () => {
-        const grid = document.getElementById('lista-imoveis');
-        document.getElementById('admin-menu').style.display = isAdmin ? 'flex' : 'none';
-        
-        grid.innerHTML = imoveis.map(im => `
-            <div class="card">
-                ${isAdmin ? `<div class="admin-controls"><button class="btn-tool" onclick="excluirImovel(${im.id})">EXCLUIR</button></div>` : ''}
-                <img src="${im.fotos ? im.fotos[0] : ''}">
-                <div class="card-info">
-                    <h3>${im.cidade}</h3>
-                    <p>${im.quartos} SUÍTES • ${im.unidades} VAGAS</p>
-                </div>
+window.prepararEscolha = (index) => {
+    const im = imoveis[index];
+    const modal = document.getElementById('modal-escolha'); // Certifique-se que este ID existe no seu HTML
+    if(!modal) return;
+    
+    modal.style.display = 'flex';
+    document.getElementById('btn-ver-video').onclick = () => window.open(im.video, '_blank');
+    document.getElementById('btn-ver-fotos').onclick = () => {
+        // Lógica para abrir o carousel
+        fecharModal('modal-escolha');
+        document.getElementById('carousel-view').style.display = 'flex';
+        document.getElementById('carousel-img').src = im.fotos[0]; 
+        abrirModal('modal-carousel');
+    };
+};
+
+// Ajuste na função renderizar para incluir o clique na imagem
+window.renderizar = () => {
+    const grid = document.getElementById('lista-imoveis');
+    document.getElementById('admin-menu').style.display = isAdmin ? 'flex' : 'none';
+    
+    grid.innerHTML = imoveis.map((im, i) => `
+        <div class="card">
+            ${isAdmin ? `<div class="admin-controls"><button class="btn-tool" onclick="excluirImovel(${im.id})">EXCLUIR</button></div>` : ''}
+            <img src="${im.fotos && im.fotos.length > 0 ? im.fotos[0] : 'https://via.placeholder.com/400'}" 
+                 onclick="prepararEscolha(${i})">
+            <div class="card-info">
+                <h3>${im.cidade}</h3>
+                <p>${im.quartos} SUÍTES • ${im.unidades} VAGAS</p>
             </div>
-        `).join('');
-    }
-
-    window.verificarSenha = () => {
-        if(document.getElementById('senhaAdmin').value === '123') {
-            isAdmin = true;
-            fecharModal('modal-login');
-            renderizar();
-        } else { alert("Senha incorreta"); }
-    }
-
-    window.salvarImovel = async () => {
-        const dados = {
-            cidade: document.getElementById('cidade').value,
-            quartos: document.getElementById('quartos').value,
-            unidades: document.getElementById('unidades').value,
-            video: document.getElementById('linkVideo').value,
-            fotos: ["https://via.placeholder.com/400"] // Placeholder temporário
-        };
-        await supabase.from('imoveis').insert([dados]);
-        alert("Imóvel salvo!");
-        carregarImoveis();
-        fecharModal('modal-add');
-    }
-
-    window.excluirImovel = async (id) => {
-        await supabase.from('imoveis').delete().eq('id', id);
-        carregarImoveis();
-    }
-
-    window.abrirModal = (id) => document.getElementById(id).style.display = 'flex';
-    window.fecharModal = (id) => document.getElementById(id).style.display = 'none';
-
-    carregarImoveis();
+        </div>
+    `).join('');
+}
 </script>
 </body>
 </html>
