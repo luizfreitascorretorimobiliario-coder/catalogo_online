@@ -4,118 +4,123 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Império Imobiliária | Catálogo Digital</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
+        /* ... (Mantenha todo o seu CSS original abaixo) ... */
         @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;700&family=Playfair+Display:wght@700&display=swap');
         :root { --gold: #c5a059; --black: #000000; --dark-gray: #0a0a0a; --white: #ffffff; }
-        body { font-family: 'Montserrat', sans-serif; background-color: var(--black); color: var(--white); margin: 0; padding: 0; }
-        
-        /* Cabeçalho */
-        header { display: flex; justify-content: space-between; align-items: center; padding: 20px 50px; background: var(--black); border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .header-logo { height: 50px; }
-        .header-right { display: flex; align-items: center; gap: 20px; }
-        .btn-header { color: var(--white); text-decoration: none; font-size: 11px; letter-spacing: 2px; font-weight: bold; background: none; border: none; cursor: pointer; text-transform: uppercase; }
-        
-        /* Hero */
-        .hero { text-align: center; padding: 60px 20px; }
-        .hero-logo-grande { max-width: 300px; margin-bottom: 20px; }
-        .hero h1 { font-family: 'Playfair Display', serif; font-size: 2.5rem; color: var(--gold); margin: 10px 0; }
-        .hero p { color: #888; letter-spacing: 3px; font-size: 12px; }
-
-        /* Catálogo */
-        #lista-imoveis { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px; max-width: 1100px; margin: 40px auto; padding: 0 20px; }
-        .card { background: var(--dark-gray); border: 1px solid #1a1a1a; transition: 0.3s; }
-        .card img { width: 100%; height: 250px; object-fit: cover; cursor: pointer; }
-        .card-info { padding: 20px; }
-        
-        /* Modais */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; justify-content: center; align-items: center; }
-        .modal-content { background: #111; padding: 30px; border: 1px solid var(--gold); width: 90%; max-width: 400px; }
-        input { width: 100%; padding: 12px; margin: 10px 0; background: #000; border: 1px solid #333; color: white; box-sizing: border-box; }
-        .btn-gold { width: 100%; padding: 15px; background: var(--gold); border: none; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        body { font-family: 'Montserrat', sans-serif; background-color: var(--black); color: var(--white); margin: 0; padding: 0; overflow-x: hidden; }
+        header { display: flex; justify-content: space-between; align-items: center; padding: 20px 50px; background: var(--black); border-bottom: 1px solid rgba(255,255,255,0.05); position: sticky; top: 0; z-index: 1000; }
+        .header-logo { height: 65px; }
+        .header-right { display: flex; align-items: center; gap: 25px; }
+        .btn-header { color: var(--white); text-decoration: none; font-size: 11px; letter-spacing: 2px; font-weight: bold; background: none; border: none; cursor: pointer; transition: 0.3s; text-transform: uppercase; }
+        .btn-header:hover { color: var(--gold); }
+        .insta-icon { height: 24px; filter: invert(1); opacity: 0.8; transition: 0.3s; }
+        .hero { text-align: center; padding: 50px 20px; background: var(--black); }
+        .hero-logo-grande { max-width: 450px; margin-bottom: 10px; }
+        .hero h1 { font-family: 'Playfair Display', serif; font-size: 3.8rem; color: var(--gold); margin: 0; font-weight: 700; }
+        .hero p { letter-spacing: 5px; font-size: 14px; text-transform: uppercase; font-weight: 300; margin-top: 10px; }
+        .gold-line { width: 120px; height: 1px; background: var(--gold); margin: 30px auto; }
+        #lista-imoveis { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 25px; max-width: 1200px; margin: 0 auto 80px; padding: 0 20px; }
+        .card { background: var(--dark-gray); border: 1px solid #1a1a1a; position: relative; overflow: hidden; transition: 0.4s; }
+        .card img { width: 100%; height: 400px; object-fit: cover; cursor: pointer; }
+        .card-info { position: absolute; bottom: 0; width: 100%; background: linear-gradient(transparent, rgba(0,0,0,0.95)); padding: 20px; box-sizing: border-box; }
+        .card-info h3 { color: var(--gold); margin: 0; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 1px; }
+        .card-info p { margin: 5px 0 0; font-size: 0.8rem; color: #bbb; letter-spacing: 1px; }
+        .admin-controls { display: none; position: absolute; top: 15px; width: 100%; padding: 0 15px; box-sizing: border-box; z-index: 10; }
+        .is-admin .admin-controls { display: flex; justify-content: space-between; }
+        .btn-tool { width: 35px; height: 35px; border-radius: 50%; border: none; cursor: pointer; background: rgba(0,0,0,0.8); color: white; border: 1px solid var(--gold); }
+        footer { text-align: center; padding: 80px 20px; border-top: 1px solid rgba(197, 160, 89, 0.2); background: var(--black); }
+        .footer-logo { height: 50px; margin-bottom: 20px; }
+        .footer-name { font-family: 'Playfair Display', serif; font-size: 2.5rem; color: var(--gold); margin: 0; letter-spacing: 3px; text-transform: uppercase; }
+        .footer-info { margin-top: 20px; font-size: 11px; letter-spacing: 4px; color: #777; text-transform: uppercase; line-height: 2; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.98); justify-content: center; align-items: center; z-index: 2000; }
+        .modal-content { background: #0d0d0d; padding: 40px; border: 1px solid var(--gold); width: 90%; max-width: 400px; text-align: center; }
+        input { width: 100%; padding: 15px; margin: 10px 0; background: #000; border: 1px solid #333; color: white; box-sizing: border-box; }
+        .btn-gold { width: 100%; padding: 15px; background: var(--gold); border: none; font-weight: bold; cursor: pointer; text-transform: uppercase; margin-top: 10px; }
     </style>
 </head>
-<body>
+<body id="main-body">
 
 <header>
     <img src="logo.png" class="header-logo" alt="Império">
     <div class="header-right">
-        <button class="btn-header" id="btn-add" onclick="abrirModal('modal-add')" style="display:none;">ADICIONAR IMÓVEL</button>
-        <button class="btn-header" onclick="abrirModal('modal-login')">PAINEL ADM</button>
+        <button class="btn-header" onclick="abrirModal('modal-add')">Adicionar Imóvel</button>
+        <button class="btn-header" onclick="abrirModal('modal-login')">Painel ADM</button>
     </div>
 </header>
-
 <section class="hero">
-    <img src="logo.png" class="hero-logo-grande" alt="Império">
+    <img src="logo.png" class="hero-logo-grande" alt="Império Imobiliária">
     <h1>Catálogo Digital</h1>
-    <p>SUA ESCOLHA, NOSSO COMPROMISSO.</p>
+    <p>Império Imobiliária | Acredite e Realize!</p>
+    <div class="gold-line"></div>
 </section>
-
 <div id="lista-imoveis"></div>
-
-<div id="modal-login" class="modal"><div class="modal-content"><input type="password" id="senhaAdmin" placeholder="Senha"><button class="btn-gold" onclick="verificarSenha()">ENTRAR</button></div></div>
-<div id="modal-add" class="modal"><div class="modal-content"><input type="text" id="cidade" placeholder="Empreendimento"><input type="number" id="quartos" placeholder="Suítes"><input type="number" id="unidades" placeholder="Vagas"><input type="text" id="linkVideo" placeholder="Link Vídeo"><button class="btn-gold" onclick="salvarImovel()">PUBLICAR</button></div></div>
-
-<script type="module">
-    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-    // Suas credenciais
-    const supabase = createClient('https://ohjtosiyfwxzkgeewizv.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9oanRvc2l5Znd4emtnZWV3aXp2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2MjA4MzcsImV4cCI6MjA5MjE5NjgzN30.4d_NcCXDUMq9JdAETvssI8bv5WY3c5F4hzEVnL9XjdY');
+<script>
+    // 1. CONFIGURAÇÃO SUPABASE
+    const supabase = supabase.createClient('SUA_URL_SUPABASE', 'SUA_CHAVE_ANON');
 
     let imoveis = [];
     let isAdmin = false;
 
-    window.carregarImoveis = async () => {
-        const { data } = await supabase.from('imoveis').select('*');
-        imoveis = data || [];
-        renderizar();
+    // 2. BUSCAR IMÓVEIS DO BANCO
+    async function carregarImoveis() {
+        const { data, error } = await supabase.from('imoveis').select('*');
+        if (data) {
+            imoveis = data;
+            renderizar();
+        }
     }
 
-    window.renderizar = () => {
-        const grid = document.getElementById('lista-imoveis');
-        document.getElementById('btn-add').style.display = isAdmin ? 'block' : 'none';
-        
-        grid.innerHTML = imoveis.map(im => `
-            <div class="card">
-                <img src="https://via.placeholder.com/400" alt="Imóvel">
-                <div class="card-info">
-                    <h3>${im.cidade}</h3>
-                    <p>${im.quartos} SUÍTES • ${im.unidades} VAGAS</p>
-                    ${isAdmin ? `<button onclick="excluirImovel(${im.id})" style="background:#800; border:none; color:white; padding:5px; cursor:pointer;">EXCLUIR</button>` : ''}
-                </div>
-            </div>
-        `).join('');
-    }
-
-    window.verificarSenha = () => {
-        if(document.getElementById('senhaAdmin').value === '123') { 
-            isAdmin = true; 
-            document.getElementById('modal-login').style.display = 'none'; 
-            renderizar(); 
-        } else { alert("Senha incorreta"); }
-    }
-
-    window.salvarImovel = async () => {
-        const dados = { 
-            cidade: document.getElementById('cidade').value, 
-            quartos: document.getElementById('quartos').value, 
-            unidades: document.getElementById('unidades').value, 
-            video: document.getElementById('linkVideo').value 
+    // 3. SALVAR NO BANCO
+    async function salvarImovel() {
+        const dados = {
+            cidade: document.getElementById('cidade').value,
+            quartos: document.getElementById('quartos').value,
+            unidades: document.getElementById('unidades').value,
+            video: document.getElementById('linkVideo').value,
+            fotos: fotosTemp // Certifique-se de que sua coluna fotos no supabase seja do tipo 'jsonb' ou 'array'
         };
-        await supabase.from('imoveis').insert([dados]);
-        alert("Imóvel publicado!");
-        carregarImoveis();
-        document.getElementById('modal-add').style.display = 'none';
+        
+        const { error } = await supabase.from('imoveis').insert([dados]);
+        if (!error) {
+            alert("Imóvel publicado!");
+            carregarImoveis();
+            fecharModal('modal-add');
+        } else {
+            alert("Erro ao salvar: " + error.message);
+        }
     }
 
-    window.excluirImovel = async (id) => {
-        if(confirm("Excluir este imóvel?")) {
+    // 4. EXCLUIR DO BANCO
+    async function excluirImovel(id) {
+        if(confirm("Deseja excluir?")) {
             await supabase.from('imoveis').delete().eq('id', id);
             carregarImoveis();
         }
     }
 
-    window.abrirModal = (id) => document.getElementById(id).style.display = 'flex';
-    
+    // Modificação no Renderizar para usar ID do banco
+    function renderizar() {
+        const grid = document.getElementById('lista-imoveis');
+        grid.innerHTML = imoveis.map((im, i) => `
+            <div class="card">
+                <div class="admin-controls">
+                    <button class="btn-tool" onclick="excluirImovel(${im.id})">🗑</button>
+                </div>
+                <img src="${im.fotos[0]}" onclick="prepararEscolha(${i})">
+                <div class="card-info">
+                    <h3>${im.cidade}</h3>
+                    <p>${im.quartos} SUÍTES • ${im.unidades} VAGAS</p>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // Iniciar
     carregarImoveis();
+    
+    // ... (Mantenha suas outras funções como abrirModal, prepararEscolha, etc.)
 </script>
 </body>
 </html>
