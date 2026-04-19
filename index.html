@@ -6,7 +6,6 @@
     <title>Império Imobiliária | Catálogo Digital</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* ... (Mantenha todo o seu CSS original abaixo) ... */
         @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;700&family=Playfair+Display:wght@700&display=swap');
         :root { --gold: #c5a059; --black: #000000; --dark-gray: #0a0a0a; --white: #ffffff; }
         body { font-family: 'Montserrat', sans-serif; background-color: var(--black); color: var(--white); margin: 0; padding: 0; overflow-x: hidden; }
@@ -22,7 +21,7 @@
         .hero p { letter-spacing: 5px; font-size: 14px; text-transform: uppercase; font-weight: 300; margin-top: 10px; }
         .gold-line { width: 120px; height: 1px; background: var(--gold); margin: 30px auto; }
         #lista-imoveis { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 25px; max-width: 1200px; margin: 0 auto 80px; padding: 0 20px; }
-        .card { background: var(--dark-gray); border: 1px solid #1a1a1a; position: relative; overflow: hidden; transition: 0.4s; }
+        .card { background: var(--dark-gray); border: 1px solid #1a1a1a; position: relative; overflow: hidden; }
         .card img { width: 100%; height: 400px; object-fit: cover; cursor: pointer; }
         .card-info { position: absolute; bottom: 0; width: 100%; background: linear-gradient(transparent, rgba(0,0,0,0.95)); padding: 20px; box-sizing: border-box; }
         .card-info h3 { color: var(--gold); margin: 0; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 1px; }
@@ -47,68 +46,54 @@
     <div class="header-right">
         <button class="btn-header" onclick="abrirModal('modal-add')">Adicionar Imóvel</button>
         <button class="btn-header" onclick="abrirModal('modal-login')">Painel ADM</button>
+        <a href="https://www.instagram.com/imperio_imobiliaria1/" target="_blank"><img src="https://cdn-icons-png.flaticon.com/512/174/174855.png" class="insta-icon"></a>
     </div>
 </header>
+
 <section class="hero">
     <img src="logo.png" class="hero-logo-grande" alt="Império Imobiliária">
     <h1>Catálogo Digital</h1>
     <p>Império Imobiliária | Acredite e Realize!</p>
     <div class="gold-line"></div>
 </section>
+
 <div id="lista-imoveis"></div>
+
+<footer>
+    <img src="logo.png" class="footer-logo">
+    <h2 class="footer-name">Império</h2>
+    <div class="footer-info">EXCELÊNCIA EM NEGÓCIOS IMOBILIÁRIOS | CRECI 20199-J | PERNAMBUCO</div>
+</footer>
+
+<div id="modal-login" class="modal">
+    <div class="modal-content">
+        <h2 style="color:var(--gold)">ACESSO</h2>
+        <input type="password" id="senhaAdmin" placeholder="Senha">
+        <button class="btn-gold" onclick="verificarSenha()">Entrar</button>
+    </div>
+</div>
+
+<div id="modal-add" class="modal">
+    <div class="modal-content">
+        <h2 style="color:var(--gold)">NOVO IMÓVEL</h2>
+        <input type="text" id="cidade" placeholder="Empreendimento">
+        <input type="number" id="quartos" placeholder="Suítes">
+        <input type="number" id="unidades" placeholder="Vagas">
+        <input type="text" id="linkVideo" placeholder="Link Vídeo">
+        <button class="btn-gold" onclick="salvarImovel()">Confirmar</button>
+    </div>
+</div>
+
 <script>
-    // 1. CONFIGURAÇÃO SUPABASE
-    const supabase = supabase.createClient('SUA_URL_SUPABASE', 'SUA_CHAVE_ANON');
+    const supabase = supabase.createClient('https://ohjtosiyfwxzkgeewizv.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9oanRvc2l5Znd4emtnZWV3aXp2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2MjA4MzcsImV4cCI6MjA5MjE5NjgzN30.4d_NcCXDUMq9JdAETvssI8bv5WY3c5F4hzEVnL9XjdY');
 
-    let imoveis = [];
-    let isAdmin = false;
-
-    // 2. BUSCAR IMÓVEIS DO BANCO
     async function carregarImoveis() {
-        const { data, error } = await supabase.from('imoveis').select('*');
-        if (data) {
-            imoveis = data;
-            renderizar();
-        }
-    }
-
-    // 3. SALVAR NO BANCO
-    async function salvarImovel() {
-        const dados = {
-            cidade: document.getElementById('cidade').value,
-            quartos: document.getElementById('quartos').value,
-            unidades: document.getElementById('unidades').value,
-            video: document.getElementById('linkVideo').value,
-            fotos: fotosTemp // Certifique-se de que sua coluna fotos no supabase seja do tipo 'jsonb' ou 'array'
-        };
-        
-        const { error } = await supabase.from('imoveis').insert([dados]);
-        if (!error) {
-            alert("Imóvel publicado!");
-            carregarImoveis();
-            fecharModal('modal-add');
-        } else {
-            alert("Erro ao salvar: " + error.message);
-        }
-    }
-
-    // 4. EXCLUIR DO BANCO
-    async function excluirImovel(id) {
-        if(confirm("Deseja excluir?")) {
-            await supabase.from('imoveis').delete().eq('id', id);
-            carregarImoveis();
-        }
-    }
-
-    // Modificação no Renderizar para usar ID do banco
-    function renderizar() {
+        const { data } = await supabase.from('imoveis').select('*');
         const grid = document.getElementById('lista-imoveis');
-        grid.innerHTML = imoveis.map((im, i) => `
+        grid.innerHTML = (data || []).map((im, i) => `
             <div class="card">
-                <div class="admin-controls">
-                    <button class="btn-tool" onclick="excluirImovel(${im.id})">🗑</button>
-                </div>
-                <img src="${im.fotos[0]}" onclick="prepararEscolha(${i})">
+                <div class="admin-controls"><button class="btn-tool" onclick="excluirImovel(${im.id})">🗑</button></div>
+                <img src="https://via.placeholder.com/400" onclick="alert('Funcionalidade de fotos em breve!')">
                 <div class="card-info">
                     <h3>${im.cidade}</h3>
                     <p>${im.quartos} SUÍTES • ${im.unidades} VAGAS</p>
@@ -117,10 +102,31 @@
         `).join('');
     }
 
-    // Iniciar
+    async function salvarImovel() {
+        const dados = { cidade: document.getElementById('cidade').value, quartos: document.getElementById('quartos').value, unidades: document.getElementById('unidades').value, video: document.getElementById('linkVideo').value };
+        await supabase.from('imoveis').insert([dados]);
+        carregarImoveis();
+        fecharModal('modal-add');
+    }
+
+    async function excluirImovel(id) {
+        if(confirm("Deseja excluir?")) {
+            await supabase.from('imoveis').delete().eq('id', id);
+            carregarImoveis();
+        }
+    }
+
+    function verificarSenha() {
+        if(document.getElementById('senhaAdmin').value === '123') {
+            document.getElementById('main-body').classList.add('is-admin');
+            fecharModal('modal-login');
+        } else { alert("Senha Incorreta!"); }
+    }
+
+    function abrirModal(id) { document.getElementById(id).style.display = 'flex'; }
+    function fecharModal(id) { document.getElementById(id).style.display = 'none'; }
+
     carregarImoveis();
-    
-    // ... (Mantenha suas outras funções como abrirModal, prepararEscolha, etc.)
 </script>
 </body>
 </html>
