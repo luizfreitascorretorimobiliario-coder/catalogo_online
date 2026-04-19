@@ -2,115 +2,90 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Império Imobiliária | Catálogo Digital</title>
+    <title>Império Imobiliária | Catálogo</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;700&family=Playfair+Display:wght@700&display=swap');
         :root { --gold: #c5a059; --black: #000000; --dark-gray: #0a0a0a; --white: #ffffff; }
-        body { font-family: 'Montserrat', sans-serif; background-color: var(--black); color: var(--white); margin: 0; padding: 0; overflow-x: hidden; }
-        header { display: flex; justify-content: space-between; align-items: center; padding: 20px 50px; background: var(--black); border-bottom: 1px solid rgba(255,255,255,0.05); position: sticky; top: 0; z-index: 1000; }
-        .header-logo { height: 65px; }
-        .header-right { display: flex; align-items: center; gap: 25px; }
-        .btn-header { color: var(--white); text-decoration: none; font-size: 11px; letter-spacing: 2px; font-weight: bold; background: none; border: none; cursor: pointer; transition: 0.3s; text-transform: uppercase; }
-        .btn-header:hover { color: var(--gold); }
-        .hero { text-align: center; padding: 50px 20px; background: var(--black); }
-        .hero-logo-grande { max-width: 450px; }
-        .hero h1 { font-family: 'Playfair Display', serif; font-size: 3.8rem; color: var(--gold); margin: 0; }
-        #lista-imoveis { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 25px; max-width: 1200px; margin: 0 auto 80px; padding: 0 20px; }
-        .card { background: var(--dark-gray); border: 1px solid #1a1a1a; position: relative; }
-        .card img { width: 100%; height: 400px; object-fit: cover; cursor: pointer; }
+        body { font-family: 'Montserrat', sans-serif; background-color: var(--black); color: var(--white); margin: 0; }
+        header { display: flex; justify-content: space-between; align-items: center; padding: 20px 50px; background: var(--black); position: sticky; top: 0; z-index: 1000; }
+        .header-right { display: flex; gap: 25px; }
+        .btn-header { color: var(--white); background: none; border: none; cursor: pointer; text-transform: uppercase; font-size: 11px; }
+        #lista-imoveis { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 25px; max-width: 1200px; margin: 50px auto; padding: 0 20px; }
+        .card { background: var(--dark-gray); border: 1px solid #1a1a1a; cursor: pointer; }
+        .card img { width: 100%; height: 300px; object-fit: cover; }
         .card-info { padding: 20px; }
-        .admin-controls { display: flex; justify-content: flex-end; padding: 10px; }
-        .btn-tool { background: #ff4444; color: white; border: none; padding: 5px 10px; cursor: pointer; }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.98); justify-content: center; align-items: center; z-index: 2000; }
-        .modal-content { background: #0d0d0d; padding: 40px; border: 1px solid var(--gold); width: 90%; max-width: 400px; text-align: center; }
-        input { width: 100%; padding: 15px; margin: 10px 0; background: #000; border: 1px solid #333; color: white; box-sizing: border-box; }
-        .btn-gold { width: 100%; padding: 15px; background: var(--gold); border: none; font-weight: bold; cursor: pointer; text-transform: uppercase; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); justify-content: center; align-items: center; z-index: 2000; }
+        .modal-content { background: #0d0d0d; padding: 40px; border: 1px solid var(--gold); text-align: center; width: 90%; max-width: 400px; }
+        .btn-gold { width: 100%; padding: 15px; background: var(--gold); border: none; margin-top: 10px; cursor: pointer; text-transform: uppercase; }
+        .btn-tool { background: #ff4444; color: white; border: none; padding: 5px; width: 100%; cursor: pointer; }
     </style>
 </head>
 <body id="main-body">
 
 <header>
-    <img src="logo.png" class="header-logo" alt="Império">
-    <div class="header-right" id="admin-menu" style="display: none;">
-        <button class="btn-header" onclick="abrirModal('modal-add')">Adicionar Imóvel</button>
+    <img src="logo.png" style="height: 50px;">
+    <div class="header-right">
+        <div id="admin-menu" style="display: none; gap: 25px;">
+            <button class="btn-header" onclick="abrirModal('modal-add')">Adicionar Imóvel</button>
+        </div>
+        <button class="btn-header" onclick="abrirModal('modal-login')">Painel ADM</button>
     </div>
-    <button class="btn-header" onclick="abrirModal('modal-login')">Painel ADM</button>
 </header>
-
-<section class="hero">
-    <img src="logo.png" class="hero-logo-grande" alt="Império Imobiliária">
-    <h1>Catálogo Digital</h1>
-</section>
 
 <div id="lista-imoveis"></div>
 
-<div id="modal-login" class="modal">
-    <div class="modal-content">
-        <h2 style="color:var(--gold)">ACESSO ADM</h2>
-        <input type="password" id="senhaAdmin" placeholder="Senha">
-        <button class="btn-gold" onclick="verificarSenha()">Entrar</button>
-        <button onclick="fecharModal('modal-login')" style="background:none; border:none; color:grey; margin-top:15px; cursor:pointer;">Voltar</button>
-    </div>
-</div>
-
-<div id="modal-add" class="modal">
-    <div class="modal-content">
-        <h2 style="color:var(--gold)">ADICIONAR IMÓVEL</h2>
-        <input type="text" id="cidade" placeholder="Nome do Empreendimento">
-        <input type="number" id="quartos" placeholder="Nº de Suítes">
-        <input type="number" id="unidades" placeholder="Vagas">
-        <input type="text" id="linkVideo" placeholder="Link do Vídeo">
-        <input type="file" id="uploadFotos" multiple>
-        <button class="btn-gold" id="btn-publicar" onclick="salvarImovel()">Publicar</button>
-    </div>
-</div>
+<div id="modal-login" class="modal"><div class="modal-content"><input type="password" id="senhaAdmin" placeholder="Senha"><button class="btn-gold" onclick="verificarSenha()">ENTRAR</button></div></div>
+<div id="modal-add" class="modal"><div class="modal-content"><input type="text" id="cidade" placeholder="Empreendimento"><input type="number" id="quartos" placeholder="Suítes"><input type="number" id="unidades" placeholder="Vagas"><input type="text" id="linkVideo" placeholder="Link Vídeo"><button class="btn-gold" onclick="salvarImovel()">PUBLICAR</button></div></div>
+<div id="modal-escolha" class="modal"><div class="modal-content"><button class="btn-gold" id="btn-ver-video">ASSISTIR VÍDEO</button><button class="btn-gold" onclick="fecharModal('modal-escolha')">VOLTAR</button></div></div>
 
 <script type="module">
     import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-
-    const SUPABASE_URL = 'https://ohjtosiyfwxzkgeewizv.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9oanRvc2l5Znd4emtnZWV3aXp2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2MjA4MzcsImV4cCI6MjA5MjE5NjgzN30.4d_NcCXDUMq9JdAETvssI8bv5WY3c5F4hzEVnL9XjdY';
-    const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+    const supabase = createClient('https://ohjtosiyfwxzkgeewizv.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9oanRvc2l5Znd4emtnZWV3aXp2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2MjA4MzcsImV4cCI6MjA5MjE5NjgzN30.4d_NcCXDUMq9JdAETvssI8bv5WY3c5F4hzEVnL9XjdY');
 
     let imoveis = [];
     let isAdmin = false;
 
-    // ... (mantenha o import e o setup do supabase como está)
+    window.carregarImoveis = async () => {
+        const { data } = await supabase.from('imoveis').select('*');
+        imoveis = data || [];
+        renderizar();
+    }
 
-window.prepararEscolha = (index) => {
-    const im = imoveis[index];
-    const modal = document.getElementById('modal-escolha'); // Certifique-se que este ID existe no seu HTML
-    if(!modal) return;
-    
-    modal.style.display = 'flex';
-    document.getElementById('btn-ver-video').onclick = () => window.open(im.video, '_blank');
-    document.getElementById('btn-ver-fotos').onclick = () => {
-        // Lógica para abrir o carousel
-        fecharModal('modal-escolha');
-        document.getElementById('carousel-view').style.display = 'flex';
-        document.getElementById('carousel-img').src = im.fotos[0]; 
-        abrirModal('modal-carousel');
-    };
-};
-
-// Ajuste na função renderizar para incluir o clique na imagem
-window.renderizar = () => {
-    const grid = document.getElementById('lista-imoveis');
-    document.getElementById('admin-menu').style.display = isAdmin ? 'flex' : 'none';
-    
-    grid.innerHTML = imoveis.map((im, i) => `
-        <div class="card">
-            ${isAdmin ? `<div class="admin-controls"><button class="btn-tool" onclick="excluirImovel(${im.id})">EXCLUIR</button></div>` : ''}
-            <img src="${im.fotos && im.fotos.length > 0 ? im.fotos[0] : 'https://via.placeholder.com/400'}" 
-                 onclick="prepararEscolha(${i})">
-            <div class="card-info">
-                <h3>${im.cidade}</h3>
-                <p>${im.quartos} SUÍTES • ${im.unidades} VAGAS</p>
+    window.renderizar = () => {
+        const grid = document.getElementById('lista-imoveis');
+        document.getElementById('admin-menu').style.display = isAdmin ? 'flex' : 'none';
+        grid.innerHTML = imoveis.map((im, i) => `
+            <div class="card">
+                ${isAdmin ? `<button class="btn-tool" onclick="excluirImovel(${im.id})">EXCLUIR</button>` : ''}
+                <div onclick="prepararEscolha(${i})">
+                    <img src="https://via.placeholder.com/400">
+                    <div class="card-info"><h3>${im.cidade}</h3><p>${im.quartos} SUÍTES • ${im.unidades} VAGAS</p></div>
+                </div>
             </div>
-        </div>
-    `).join('');
-}
+        `).join('');
+    }
+
+    window.prepararEscolha = (i) => {
+        const im = imoveis[i];
+        document.getElementById('modal-escolha').style.display = 'flex';
+        document.getElementById('btn-ver-video').onclick = () => window.open(im.video, '_blank');
+    }
+
+    window.verificarSenha = () => {
+        if(document.getElementById('senhaAdmin').value === '123') { isAdmin = true; fecharModal('modal-login'); renderizar(); }
+    }
+
+    window.salvarImovel = async () => {
+        const dados = { cidade: document.getElementById('cidade').value, quartos: document.getElementById('quartos').value, unidades: document.getElementById('unidades').value, video: document.getElementById('linkVideo').value };
+        await supabase.from('imoveis').insert([dados]);
+        carregarImoveis(); fecharModal('modal-add');
+    }
+
+    window.excluirImovel = async (id) => { await supabase.from('imoveis').delete().eq('id', id); carregarImoveis(); }
+    window.abrirModal = (id) => document.getElementById(id).style.display = 'flex';
+    window.fecharModal = (id) => document.getElementById(id).style.display = 'none';
+
+    carregarImoveis();
 </script>
 </body>
 </html>
