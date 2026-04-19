@@ -85,12 +85,15 @@
 </div>
 
 <script>
-    const supabase = supabase.createClient('https://ohjtosiyfwxzkgeewizv.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9oanRvc2l5Znd4emtnZWV3aXp2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2MjA4MzcsImV4cCI6MjA5MjE5NjgzN30.4d_NcCXDUMq9JdAETvssI8bv5WY3c5F4hzEVnL9XjdY');
+    // Inicialização corrigida
+    const supabaseClient = supabase.createClient('https://ohjtosiyfwxzkgeewizv.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9oanRvc2l5Znd4emtnZWV3aXp2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2MjA4MzcsImV4cCI6MjA5MjE5NjgzN30.4d_NcCXDUMq9JdAETvssI8bv5WY3c5F4hzEVnL9XjdY');
 
     async function carregarImoveis() {
-        const { data } = await supabase.from('imoveis').select('*');
+        const { data, error } = await supabaseClient.from('imoveis').select('*');
+        if (error) { console.error("Erro ao carregar:", error); return; }
+        
         const grid = document.getElementById('lista-imoveis');
-        grid.innerHTML = (data || []).map((im, i) => `
+        grid.innerHTML = (data || []).map((im) => `
             <div class="card">
                 <div class="admin-controls"><button class="btn-tool" onclick="excluirImovel(${im.id})">🗑</button></div>
                 <img src="https://via.placeholder.com/400" onclick="alert('Funcionalidade de fotos em breve!')">
@@ -103,15 +106,19 @@
     }
 
     async function salvarImovel() {
-        const dados = { cidade: document.getElementById('cidade').value, quartos: document.getElementById('quartos').value, unidades: document.getElementById('unidades').value, video: document.getElementById('linkVideo').value };
-        await supabase.from('imoveis').insert([dados]);
-        carregarImoveis();
-        fecharModal('modal-add');
+        const dados = { 
+            cidade: document.getElementById('cidade').value, 
+            quartos: parseInt(document.getElementById('quartos').value), 
+            unidades: parseInt(document.getElementById('unidades').value), 
+            video: document.getElementById('linkVideo').value 
+        };
+        const { error } = await supabaseClient.from('imoveis').insert([dados]);
+        if (error) { alert("Erro: " + error.message); } else { carregarImoveis(); fecharModal('modal-add'); }
     }
 
     async function excluirImovel(id) {
         if(confirm("Deseja excluir?")) {
-            await supabase.from('imoveis').delete().eq('id', id);
+            await supabaseClient.from('imoveis').delete().eq('id', id);
             carregarImoveis();
         }
     }
