@@ -49,6 +49,7 @@
         .btn-header:hover { color: var(--gold); }
         .insta-icon { height: 24px; filter: invert(1); opacity: 0.8; transition: 0.3s; }
         .insta-icon:hover { opacity: 1; transform: scale(1.1); }
+
         .hero {
             text-align: center;
             padding: 50px 20px;
@@ -78,6 +79,7 @@
             background: var(--gold);
             margin: 30px auto;
         }
+
         #lista-imoveis {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
@@ -110,9 +112,30 @@
         }
         .card-info h3 { color: var(--gold); margin: 0; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 1px; }
         .card-info p { margin: 5px 0 0; font-size: 0.8rem; color: #bbb; letter-spacing: 1px; }
-        .admin-controls { display: none; position: absolute; top: 15px; width: 100%; padding: 0 15px; box-sizing: border-box; z-index: 10; }
-        .is-admin .admin-controls { display: flex; justify-content: space-between; }
-        .btn-tool { width: 35px; height: 35px; border-radius: 50%; border: none; cursor: pointer; background: rgba(0,0,0,0.8); color: white; border: 1px solid var(--gold); }
+
+        .admin-controls { 
+            display: none; 
+            position: absolute; 
+            top: 15px; 
+            width: 100%; 
+            padding: 0 15px; 
+            box-sizing: border-box; 
+            z-index: 10; 
+            justify-content: space-between;
+        }
+        .is-admin .admin-controls { display: flex; }
+
+        .btn-tool { 
+            width: 35px; 
+            height: 35px; 
+            border-radius: 50%; 
+            border: none; 
+            cursor: pointer; 
+            background: rgba(0,0,0,0.8); 
+            color: white; 
+            border: 1px solid var(--gold); 
+        }
+
         footer {
             text-align: center;
             padding: 80px 20px;
@@ -136,10 +159,50 @@
             text-transform: uppercase;
             line-height: 2;
         }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.98); justify-content: center; align-items: center; z-index: 2000; }
-        .modal-content { background: #0d0d0d; padding: 40px; border: 1px solid var(--gold); width: 90%; max-width: 400px; text-align: center; }
-        input { width: 100%; padding: 15px; margin: 10px 0; background: #000; border: 1px solid #333; color: white; box-sizing: border-box; }
-        .btn-gold { width: 100%; padding: 15px; background: var(--gold); border: none; font-weight: bold; cursor: pointer; text-transform: uppercase; margin-top: 10px; }
+
+        /* MODAIS - CORRIGIDO */
+        .modal { 
+            display: none; 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            background: rgba(0,0,0,0.98); 
+            justify-content: center; 
+            align-items: center; 
+            z-index: 2000; 
+        }
+        .modal-content { 
+            background: #0d0d0d; 
+            padding: 40px; 
+            border: 1px solid var(--gold); 
+            width: 90%; 
+            max-width: 420px; 
+            text-align: center; 
+            border-radius: 4px;
+        }
+        input { 
+            width: 100%; 
+            padding: 15px; 
+            margin: 10px 0; 
+            background: #000; 
+            border: 1px solid #333; 
+            color: white; 
+            box-sizing: border-box; 
+            font-size: 16px;
+        }
+        .btn-gold { 
+            width: 100%; 
+            padding: 15px; 
+            background: var(--gold); 
+            border: none; 
+            font-weight: bold; 
+            cursor: pointer; 
+            text-transform: uppercase; 
+            margin-top: 10px; 
+            font-size: 14px;
+        }
     </style>
 </head>
 <body id="main-body">
@@ -175,7 +238,7 @@
 <div id="modal-login" class="modal">
     <div class="modal-content">
         <h2 style="color:var(--gold)">ACESSO ADM</h2>
-        <input type="email" id="emailAdmin" placeholder="E-mail" value="luizfreitascorretorimobiliario@gmail.com">
+        <input type="email" id="emailAdmin" placeholder="E-mail" value="">
         <input type="password" id="senhaAdmin" placeholder="Senha">
         <button class="btn-gold" onclick="fazerLogin()">Entrar</button>
         <button onclick="fecharModal('modal-login')" style="background:none; border:none; color:grey; margin-top:15px; cursor:pointer;">Voltar</button>
@@ -190,15 +253,15 @@
         <input type="text" id="cidade" placeholder="Nome do Empreendimento">
         <input type="number" id="quartos" placeholder="Nº de Suítes">
         <input type="number" id="unidades" placeholder="Vagas de Garagem">
-        <div id="status-fotos" style="color: var(--gold); font-size: 0.7rem; margin: 5px 0;"></div>
+        <div id="status-fotos" style="color: var(--gold); font-size: 0.8rem; margin: 8px 0;"></div>
         <input type="file" id="uploadFotos" accept="image/*" multiple>
-        <input type="text" id="linkVideo" placeholder="Link do Vídeo (YouTube, etc)">
+        <input type="text" id="linkVideo" placeholder="Link do Vídeo">
         <button class="btn-gold" id="btn-publicar" onclick="salvarImovel()">Confirmar</button>
         <button onclick="fecharModal('modal-add')" style="background:none; border:none; color:grey; margin-top:10px; cursor:pointer;">Cancelar</button>
     </div>
 </div>
 
-<!-- Outros modais (escolha e carousel) mantidos iguais -->
+<!-- Modal Escolha e Carousel (mantidos) -->
 <div id="modal-escolha" class="modal">
     <div class="modal-content">
         <h2 style="color:var(--gold)">DETALHES</h2>
@@ -209,7 +272,7 @@
 </div>
 
 <div id="modal-carousel" class="modal">
-    <div id="carousel-view" style="display:none; flex-direction:column; align-items:center; justify-content:center; width:100%; height:100vh;">
+    <div id="carousel-view" style="display:none;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100vh;">
         <img id="carousel-img" src="" style="max-width:90%; max-height:75vh; border:1px solid var(--gold);">
         <div style="margin-top:20px; display:flex; gap:20px;">
             <button class="btn-gold" style="width:100px;" onclick="mudarFoto(-1)">❮</button>
@@ -220,8 +283,8 @@
 </div>
 
 <script>
-    // === CONFIGURAÇÃO SUPABASE ===
-    const SUPABASE_URL = 'https://ohjtosiyfwxzkgeewizv.supabase.co';  // Substitua se for diferente
+    // ==================== CONFIGURAÇÃO SUPABASE ====================
+    const SUPABASE_URL = 'https://ohjtosiyfwxzkgeewizv.supabase.co';
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9oanRvc2l5Znd4emtnZWV3aXp2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2MjA4MzcsImV4cCI6MjA5MjE5NjgzN30.4d_NcCXDUMq9JdAETvssI8bv5WY3c5F4hzEVnL9XjdY";
 
     const supabase = Supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -231,34 +294,42 @@
     let fotoIndice = 0;
     let isAdmin = false;
 
-    // Login ADM
+    // ==================== LOGIN ADM ====================
     async function fazerLogin() {
         const email = document.getElementById('emailAdmin').value.trim();
         const senha = document.getElementById('senhaAdmin').value;
 
         if (!email || !senha) {
-            alert("Preencha email e senha!");
+            alert("Por favor, preencha o e-mail e a senha.");
             return;
         }
 
-        const { data, error } = await supabase.auth.signInWithPassword({
-            email: email,
-            password: senha
-        });
+        try {
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email: email,
+                password: senha
+            });
 
-        if (error) {
-            alert("Erro ao fazer login: " + error.message);
-        } else {
-            isAdmin = true;
-            document.getElementById('main-body').classList.add('is-admin');
-            fecharModal('modal-login');
-            renderizar();
-            alert("Login realizado com sucesso!");
+            if (error) {
+                console.error("Erro de login:", error);
+                alert("Erro ao fazer login: " + error.message);
+            } else {
+                console.log("Login bem-sucedido:", data);
+                isAdmin = true;
+                document.getElementById('main-body').classList.add('is-admin');
+                fecharModal('modal-login');
+                renderizar();
+                alert("Login realizado com sucesso! Agora você pode adicionar e editar imóveis.");
+            }
+        } catch (err) {
+            console.error("Exceção no login:", err);
+            alert("Ocorreu um erro inesperado. Verifique o console (F12).");
         }
+
         document.getElementById('senhaAdmin').value = '';
     }
 
-    // Comprimir imagem (mantido igual)
+    // ==================== COMPRESSÃO DE IMAGENS ====================
     async function comprimirImagem(file) {
         return new Promise((resolve) => {
             const reader = new FileReader();
@@ -280,21 +351,22 @@
         });
     }
 
-    // Upload de fotos
     document.getElementById('uploadFotos').addEventListener('change', async function(e) {
         const btn = document.getElementById('btn-publicar');
         btn.disabled = true;
         btn.innerText = "PROCESSANDO...";
+
         fotosTemp = [];
         for (let file of e.target.files) {
             fotosTemp.push(await comprimirImagem(file));
         }
-        document.getElementById('status-fotos').innerText = fotosTemp.length + " fotos carregadas.";
+
+        document.getElementById('status-fotos').innerText = fotosTemp.length + " foto(s) carregada(s).";
         btn.disabled = false;
         btn.innerText = "Confirmar";
     });
 
-    // Salvar ou editar imóvel no Supabase
+    // ==================== SALVAR IMÓVEL ====================
     async function salvarImovel() {
         const id = document.getElementById('edit-id').value;
         const dados = {
@@ -306,34 +378,33 @@
         };
 
         if (!dados.cidade || dados.fotos.length === 0) {
-            alert("Preencha o nome do empreendimento e adicione pelo menos uma foto!");
+            alert("Nome do empreendimento e pelo menos uma foto são obrigatórios!");
             return;
         }
 
-        let result;
-        if (id) {
-            // Atualizar
-            result = await supabase
-                .from('imoveis')
-                .update(dados)
-                .eq('id', id);
-        } else {
-            // Inserir novo
-            result = await supabase
-                .from('imoveis')
-                .insert([dados]);
-        }
+        try {
+            let result;
+            if (id) {
+                result = await supabase.from('imoveis').update(dados).eq('id', id);
+            } else {
+                result = await supabase.from('imoveis').insert([dados]);
+            }
 
-        if (result.error) {
-            alert("Erro ao salvar: " + result.error.message);
-        } else {
-            alert(id ? "Imóvel atualizado!" : "Imóvel adicionado com sucesso!");
-            fecharModal('modal-add');
-            renderizar();
+            if (result.error) {
+                alert("Erro ao salvar: " + result.error.message);
+                console.error(result.error);
+            } else {
+                alert(id ? "Imóvel atualizado com sucesso!" : "Imóvel adicionado com sucesso!");
+                fecharModal('modal-add');
+                renderizar();
+            }
+        } catch (err) {
+            console.error(err);
+            alert("Erro inesperado ao salvar. Veja o console.");
         }
     }
 
-    // Carregar imóveis do Supabase
+    // ==================== CARREGAR E RENDERIZAR ====================
     async function carregarImoveis() {
         const { data, error } = await supabase
             .from('imoveis')
@@ -347,17 +418,22 @@
         return data || [];
     }
 
-    // Renderizar grid
     async function renderizar() {
         const imoveis = await carregarImoveis();
         const grid = document.getElementById('lista-imoveis');
-        grid.innerHTML = imoveis.map((im, i) => `
+
+        if (imoveis.length === 0) {
+            grid.innerHTML = `<p style="grid-column:1/-1;text-align:center;color:#777;padding:40px;">Nenhum imóvel cadastrado ainda.</p>`;
+            return;
+        }
+
+        grid.innerHTML = imoveis.map(im => `
             <div class="card">
                 <div class="admin-controls">
                     <button class="btn-tool" onclick="editarImovel('${im.id}')">✎</button>
                     <button class="btn-tool" onclick="excluirImovel('${im.id}')">🗑</button>
                 </div>
-                <img src="${im.fotos[0]}" onclick="prepararEscolha('${im.id}')">
+                <img src="${im.fotos && im.fotos[0] ? im.fotos[0] : ''}" onclick="prepararEscolha('${im.id}')" alt="${im.cidade}">
                 <div class="card-info">
                     <h3>${im.cidade}</h3>
                     <p>${im.quartos} SUÍTES • ${im.unidades} VAGAS</p>
@@ -366,22 +442,23 @@
         `).join('');
     }
 
-    // Editar
     async function editarImovel(id) {
-        const { data } = await supabase.from('imoveis').select('*').eq('id', id).single();
-        if (!data) return;
+        const { data, error } = await supabase.from('imoveis').select('*').eq('id', id).single();
+        if (error || !data) {
+            alert("Erro ao carregar imóvel para edição.");
+            return;
+        }
 
         abrirModal('modal-add');
         document.getElementById('edit-id').value = data.id;
-        document.getElementById('cidade').value = data.cidade;
-        document.getElementById('quartos').value = data.quartos;
-        document.getElementById('unidades').value = data.unidades;
+        document.getElementById('cidade').value = data.cidade || '';
+        document.getElementById('quartos').value = data.quartos || '';
+        document.getElementById('unidades').value = data.unidades || '';
         document.getElementById('linkVideo').value = data.video || '';
-        fotosTemp = [...(data.fotos || [])];
-        document.getElementById('status-fotos').innerText = fotosTemp.length + " fotos mantidas.";
+        fotosTemp = data.fotos ? [...data.fotos] : [];
+        document.getElementById('status-fotos').innerText = fotosTemp.length + " foto(s) mantida(s).";
     }
 
-    // Excluir
     async function excluirImovel(id) {
         if (!confirm("Deseja realmente excluir este imóvel?")) return;
 
@@ -418,7 +495,6 @@
         document.getElementById('status-fotos').innerText = '';
     }
 
-    // Modais de visualização (mantidos quase iguais)
     let imoveisCache = [];
     async function prepararEscolha(id) {
         const imoveis = await carregarImoveis();
@@ -428,33 +504,33 @@
         abrirModal('modal-escolha');
         document.getElementById('btn-ver-video').onclick = () => {
             if (imovelAtual.video) window.open(imovelAtual.video, '_blank');
-            else alert("Nenhum vídeo cadastrado.");
+            else alert("Nenhum vídeo cadastrado para este imóvel.");
         };
         document.getElementById('btn-ver-fotos').onclick = () => {
             fecharModal('modal-escolha');
             fotoIndice = 0;
             document.getElementById('carousel-view').style.display = 'flex';
-            document.getElementById('carousel-img').src = imovelAtual.fotos[0];
+            document.getElementById('carousel-img').src = imovelAtual.fotos && imovelAtual.fotos[0] ? imovelAtual.fotos[0] : '';
             abrirModal('modal-carousel');
         };
     }
 
     function mudarFoto(dir) {
-        if (!imovelAtual) return;
+        if (!imovelAtual || !imovelAtual.fotos || imovelAtual.fotos.length === 0) return;
         fotoIndice = (fotoIndice + dir + imovelAtual.fotos.length) % imovelAtual.fotos.length;
         document.getElementById('carousel-img').src = imovelAtual.fotos[fotoIndice];
     }
 
-    // Inicializar
+    // ==================== INICIALIZAÇÃO ====================
     window.onload = async () => {
-        renderizar();
-
-        // Opcional: verificar se já está logado (sessão persistente)
+        // Verifica se já está logado (sessão persistente)
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
             isAdmin = true;
             document.getElementById('main-body').classList.add('is-admin');
         }
+
+        await renderizar();
     };
 </script>
 </body>
