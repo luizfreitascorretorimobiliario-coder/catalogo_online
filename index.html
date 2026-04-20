@@ -32,7 +32,7 @@
             z-index: 1000;
         }
         .header-logo { height: 65px; }
-        .header-right { display: flex; align-items: center; gap: 25px; }
+        .header-right { display: flex; align-items: center; gap: 15px; }
         .btn-header {
             color: var(--white);
             text-decoration: none;
@@ -176,6 +176,15 @@
             margin-top: 10px; 
             font-size: 14px;
         }
+        .btn-logout {
+            background: #333;
+            color: #ff6666;
+            padding: 8px 16px;
+            border: 1px solid #ff6666;
+            border-radius: 4px;
+            font-size: 11px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body id="main-body">
@@ -183,7 +192,7 @@
     <img src="logo.png" class="header-logo" alt="Império">
     <div class="header-right">
         <button class="btn-header" onclick="abrirModal('modal-add')">Adicionar Imóvel</button>
-        <button class="btn-header" onclick="abrirModal('modal-login')">Painel ADM</button>
+        <button class="btn-header" onclick="abrirModal('modal-login')" id="btn-painel-adm">Painel ADM</button>
         <a href="https://www.instagram.com/imperio_imobiliaria1/" target="_blank">
             <img src="https://cdn-icons-png.flaticon.com/512/174/174855.png" class="insta-icon" alt="Instagram">
         </a>
@@ -255,7 +264,6 @@
 </div>
 
 <script type="module">
-    // ==================== CONFIGURAÇÃO SUPABASE ====================
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
     const SUPABASE_URL = 'https://ohjtosiyfwxzkgeewizv.supabase.co';
@@ -268,7 +276,7 @@
     let fotoIndice = 0;
     let isAdmin = false;
 
-    // ==================== FUNÇÕES ====================
+    // ==================== LOGIN ====================
     async function fazerLogin() {
         const email = document.getElementById('emailAdmin').value.trim();
         const senha = document.getElementById('senhaAdmin').value;
@@ -281,16 +289,29 @@
 
             isAdmin = true;
             document.getElementById('main-body').classList.add('is-admin');
+            document.getElementById('btn-painel-adm').style.display = 'none';
             fecharModal('modal-login');
             renderizar();
             alert("Login realizado com sucesso!");
         } catch (err) {
-            console.error(err);
-            alert("Erro no login: " + (err.message || err));
+            alert("Erro no login: " + (err.message || "Verifique suas credenciais"));
         }
         document.getElementById('senhaAdmin').value = '';
     }
 
+    // ==================== LOGOUT (Botão de Sair) ====================
+    async function fazerLogout() {
+        if (confirm("Deseja realmente sair do Painel ADM?")) {
+            await supabase.auth.signOut();
+            isAdmin = false;
+            document.getElementById('main-body').classList.remove('is-admin');
+            document.getElementById('btn-painel-adm').style.display = 'inline-block';
+            renderizar();
+            alert("Você saiu do painel administrativo.");
+        }
+    }
+
+    // ==================== COMPRESSÃO DE IMAGENS ====================
     async function comprimirImagem(file) {
         return new Promise((resolve) => {
             const reader = new FileReader();
@@ -325,6 +346,7 @@
         btn.innerText = "Confirmar";
     });
 
+    // ==================== SALVAR / EDITAR ====================
     async function salvarImovel() {
         const id = document.getElementById('edit-id').value;
         const dados = {
@@ -341,41 +363,35 @@
 
         try {
             let result;
-            if (id) {
-                result = await supabase.from('imoveis').update(dados).eq('id', id);
-            } else {
-                result = await supabase.from('imoveis').insert([dados]);
-            }
+            if (id) result = await supabase.from('imoveis').update(dados).eq('id', id);
+            else result = await supabase.from('imoveis').insert([dados]);
+
             if (result.error) throw result.error;
 
-            alert(id ? "Imóvel atualizado!" : "Imóvel adicionado com sucesso!");
+            alert(id ? "Imóvel atualizado com sucesso!" : "Imóvel adicionado com sucesso!");
             fecharModal('modal-add');
             renderizar();
         } catch (err) {
-            console.error(err);
             alert("Erro ao salvar: " + (err.message || err));
         }
     }
 
     async function carregarImoveis() {
         const { data, error } = await supabase.from('imoveis').select('*').order('created_at', { ascending: false });
-        if (error) {
-            console.error(error);
-            return [];
-        }
-        return data || [];
+        return error ? [] : (data || []);
     }
 
     async function renderizar() {
         const imoveis = await carregarImoveis();
         const grid = document.getElementById('lista-imoveis');
+
         grid.innerHTML = imoveis.map(im => `
             <div class="card">
                 <div class="admin-controls">
                     <button class="btn-tool" onclick="editarImovel('${im.id}')">✎</button>
                     <button class="btn-tool" onclick="excluirImovel('${im.id}')">🗑</button>
                 </div>
-                <img src="${im.fotos && im.fotos[0] ? im.fotos[0] : 'https://via.placeholder.com/350x400?text=Sem+Foto'}" 
+                <img src="${im.fotos?.[0] || 'https://via.placeholder.com/350x400?text=Sem+Foto'}" 
                      onclick="prepararEscolha('${im.id}')" alt="${im.cidade}">
                 <div class="card-info">
                     <h3>${im.cidade}</h3>
@@ -386,8 +402,8 @@
     }
 
     async function editarImovel(id) {
-        const { data, error } = await supabase.from('imoveis').select('*').eq('id', id).single();
-        if (error || !data) return alert("Erro ao carregar imóvel");
+        const { data } = await supabase.from('imoveis').select('*').eq('id', id).single();
+        if (!data) return;
 
         abrirModal('modal-add');
         document.getElementById('edit-id').value = data.id;
@@ -400,10 +416,9 @@
     }
 
     async function excluirImovel(id) {
-        if (!confirm("Excluir este imóvel?")) return;
-        const { error } = await supabase.from('imoveis').delete().eq('id', id);
-        if (error) alert("Erro ao excluir");
-        else renderizar();
+        if (!confirm("Deseja excluir este imóvel?")) return;
+        await supabase.from('imoveis').delete().eq('id', id);
+        renderizar();
     }
 
     function abrirModal(id) {
@@ -433,7 +448,7 @@
         if (!imovelAtual) return;
 
         abrirModal('modal-escolha');
-        document.getElementById('btn-ver-video').onclick = () => imovelAtual.video ? window.open(imovelAtual.video, '_blank') : alert("Sem vídeo");
+        document.getElementById('btn-ver-video').onclick = () => imovelAtual.video ? window.open(imovelAtual.video, '_blank') : alert("Sem vídeo cadastrado");
         document.getElementById('btn-ver-fotos').onclick = () => {
             fecharModal('modal-escolha');
             fotoIndice = 0;
@@ -455,6 +470,7 @@
         if (session) {
             isAdmin = true;
             document.getElementById('main-body').classList.add('is-admin');
+            document.getElementById('btn-painel-adm').style.display = 'none';
         }
         renderizar();
     };
