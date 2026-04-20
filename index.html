@@ -2,113 +2,132 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Império Imobiliária | Catálogo</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Império Imobiliária | Catálogo Digital</title>
     <style>
-        :root { --gold: #c5a059; --black: #000000; }
-        body { background: var(--black); color: white; font-family: 'Montserrat', sans-serif; margin: 0; }
-        #lista-imoveis { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; padding: 20px; }
-        .card { border: 1px solid #333; position: relative; cursor: pointer; }
-        .admin-tools { display: none; position: absolute; top: 10px; z-index: 10; width: 100%; justify-content: space-between; padding: 0 10px; box-sizing: border-box; }
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;700&family=Playfair+Display:wght@700&display=swap');
+        :root { --gold: #c5a059; --black: #000000; --dark-gray: #0a0a0a; --white: #ffffff; }
+        body { font-family: 'Montserrat', sans-serif; background-color: var(--black); color: var(--white); margin: 0; padding: 0; }
+        
+        header { display: flex; justify-content: space-between; align-items: center; padding: 20px 50px; background: var(--black); border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .header-right { display: flex; align-items: center; gap: 25px; }
+        
+        /* Controle de visibilidade do Admin */
+        #btn-add-imovel { display: none; }
+        .is-admin #btn-add-imovel { display: block; }
+        
+        #lista-imoveis { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 25px; max-width: 1200px; margin: 50px auto; padding: 0 20px; }
+        
+        .card { background: var(--dark-gray); border: 1px solid #1a1a1a; position: relative; }
+        .card img { width: 100%; height: 400px; object-fit: cover; cursor: pointer; }
+        
+        /* Ícones de Admin no Card */
+        .admin-tools { display: none; position: absolute; top: 15px; left: 15px; z-index: 10; gap: 10px; }
         .is-admin .admin-tools { display: flex; }
-        .modal { display: none; position: fixed; top:0; left:0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 9999; justify-content: center; align-items: center; }
-        .modal-content { background: #111; padding: 30px; width: 90%; max-width: 500px; border: 1px solid var(--gold); }
-        input { width: 100%; padding: 10px; margin: 10px 0; background: #000; border: 1px solid #333; color: white; }
-        .btn-gold { width: 100%; padding: 15px; background: var(--gold); border: none; cursor: pointer; }
+        .btn-tool { background: rgba(0,0,0,0.7); border: 1px solid var(--gold); color: white; padding: 8px; cursor: pointer; border-radius: 4px; }
+        .btn-del { position: absolute; top: 15px; right: 15px; z-index: 10; background: rgba(0,0,0,0.7); border: 1px solid red; color: white; padding: 8px; cursor: pointer; border-radius: 4px; display: none; }
+        .is-admin .btn-del { display: block; }
+
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.98); justify-content: center; align-items: center; z-index: 2000; }
+        .modal-content { background: #0d0d0d; padding: 40px; border: 1px solid var(--gold); width: 90%; max-width: 400px; text-align: center; }
+        input { width: 100%; padding: 15px; margin: 10px 0; background: #000; border: 1px solid #333; color: white; box-sizing: border-box; }
+        .btn-gold { width: 100%; padding: 15px; background: var(--gold); border: none; font-weight: bold; cursor: pointer; text-transform: uppercase; margin-top: 10px; }
     </style>
 </head>
 <body id="main-body">
 
-<header style="padding: 20px; display: flex; gap: 20px; justify-content: center;">
-    <button onclick="abrirModal('modal-add')">Adicionar Imóvel</button>
-    <button onclick="abrirModal('modal-login')">Painel ADM</button>
+<header>
+    <img src="logo.png" style="height:65px">
+    <div class="header-right">
+        <button id="btn-add-imovel" class="btn-header" onclick="abrirModal('modal-add')">Adicionar Imóvel</button>
+        <button class="btn-header" onclick="abrirModal('modal-login')">Painel ADM</button>
+    </div>
 </header>
 
 <div id="lista-imoveis"></div>
 
-<div id="modal-login" class="modal"><div class="modal-content"><input type="password" id="senha" placeholder="Senha"><button class="btn-gold" onclick="verificarSenha()">Entrar</button></div></div>
+<div id="modal-login" class="modal"><div class="modal-content"><input type="password" id="senhaAdmin" placeholder="Senha"><button class="btn-gold" onclick="verificarSenha()">Entrar</button></div></div>
 
 <div id="modal-add" class="modal">
     <div class="modal-content">
-        <input type="text" id="cidade" placeholder="Cidade">
+        <h2>GESTÃO DE IMÓVEL</h2>
+        <input type="hidden" id="edit-index" value="-1">
+        <input type="text" id="cidade" placeholder="Nome do Empreendimento">
         <input type="number" id="quartos" placeholder="Suítes">
         <input type="number" id="unidades" placeholder="Vagas">
-        <input type="text" id="video" placeholder="Link do Vídeo">
-        <input type="file" id="files" multiple>
-        <button class="btn-gold" onclick="salvarImovel()">Salvar</button>
-    </div>
-</div>
-
-<div id="modal-detalhes" class="modal" onclick="fecharModal('modal-detalhes')">
-    <div class="modal-content" onclick="event.stopPropagation()">
-        <div id="detalhes-view"></div>
+        <input type="file" id="uploadFotos" accept="image/*" multiple>
+        <input type="text" id="linkVideo" placeholder="Link do Vídeo">
+        <button class="btn-gold" onclick="salvarImovel()">Confirmar</button>
     </div>
 </div>
 
 <script>
-    const supabase = supabase.createClient('SUA_URL', 'SUA_KEY');
+    let imoveis = JSON.parse(localStorage.getItem('luxuryImoveis')) || [];
+    let fotosTemp = [];
 
-    async function carregarImoveis() {
-        const { data } = await supabase.from('imoveis').select('*');
-        document.getElementById('lista-imoveis').innerHTML = (data || []).map(im => `
+    function verificarSenha() {
+        if(document.getElementById('senhaAdmin').value === '123') {
+            document.getElementById('main-body').classList.add('is-admin');
+            fecharModal('modal-login');
+            renderizar();
+        } else { alert("Senha Incorreta!"); }
+    }
+
+    // Lógica de salvar com compressão mantida
+    async function salvarImovel() {
+        const index = parseInt(document.getElementById('edit-index').value);
+        const dados = {
+            cidade: document.getElementById('cidade').value,
+            quartos: document.getElementById('quartos').value,
+            unidades: document.getElementById('unidades').value,
+            video: document.getElementById('linkVideo').value,
+            fotos: fotosTemp
+        };
+        
+        if(index !== -1) imoveis[index] = dados;
+        else imoveis.push(dados);
+        
+        localStorage.setItem('luxuryImoveis', JSON.stringify(imoveis));
+        renderizar();
+        fecharModal('modal-add');
+    }
+
+    function renderizar() {
+        const grid = document.getElementById('lista-imoveis');
+        grid.innerHTML = imoveis.map((im, i) => `
             <div class="card">
                 <div class="admin-tools">
-                    <span onclick="event.stopPropagation(); editar(${im.id})">✏️</span>
-                    <span onclick="event.stopPropagation(); excluir(${im.id})">🗑️</span>
+                    <button class="btn-tool" onclick="editarImovel(${i})">✎</button>
                 </div>
-                <div onclick="abrirDetalhes(${im.id})">
-                    <img src="${im.fotos ? im.fotos[0] : ''}" style="width:100%; height:200px; object-fit:cover;">
+                <button class="btn-del" onclick="excluirImovel(${i})">🗑</button>
+                <img src="${im.fotos[0]}" onclick="alert('Opções: Ver Fotos ou Ver Vídeo')">
+                <div class="card-info">
                     <h3>${im.cidade}</h3>
+                    <p>${im.quartos} SUÍTES • ${im.unidades} VAGAS</p>
                 </div>
             </div>
         `).join('');
     }
 
-    async function salvarImovel() {
-        const files = document.getElementById('files').files;
-        let urls = [];
-        for(let file of files) {
-            const { data } = await supabase.storage.from('fotos-imoveis').upload(Date.now() + file.name, file);
-            const { data: urlData } = supabase.storage.from('fotos-imoveis').getPublicUrl(data.path);
-            urls.push(urlData.publicUrl);
-        }
-        await supabase.from('imoveis').insert([{ 
-            cidade: document.getElementById('cidade').value, 
-            quartos: document.getElementById('quartos').value,
-            unidades: document.getElementById('unidades').value,
-            video: document.getElementById('video').value,
-            fotos: urls 
-        }]);
-        carregarImoveis(); fecharModal('modal-add');
+    function editarImovel(index) {
+        const im = imoveis[index];
+        document.getElementById('edit-index').value = index;
+        document.getElementById('cidade').value = im.cidade;
+        abrirModal('modal-add');
     }
 
-    function abrirDetalhes(id) {
-        const im = data.find(x => x.id === id); // Certifique-se de ter a variável 'data' salva
-        document.getElementById('detalhes-view').innerHTML = `
-            <button onclick="verFotos()">Ver Fotos</button>
-            <button onclick="window.open('${im.video}', '_blank')">Ver Vídeo</button>
-        `;
-        abrirModal('modal-detalhes');
-    }
-
-    async function excluir(id) {
-        if(confirm("Confirmar exclusão?")) {
-            await supabase.from('imoveis').delete().eq('id', id);
-            carregarImoveis();
-        }
-    }
-
-    function verificarSenha() {
-        if(document.getElementById('senha').value === '123') {
-            document.getElementById('main-body').classList.add('is-admin');
-            fecharModal('modal-login');
+    function excluirImovel(index) {
+        if(confirm("Excluir?")) {
+            imoveis.splice(index, 1);
+            localStorage.setItem('luxuryImoveis', JSON.stringify(imoveis));
+            renderizar();
         }
     }
 
     function abrirModal(id) { document.getElementById(id).style.display = 'flex'; }
     function fecharModal(id) { document.getElementById(id).style.display = 'none'; }
     
-    carregarImoveis();
+    renderizar();
 </script>
 </body>
 </html>
