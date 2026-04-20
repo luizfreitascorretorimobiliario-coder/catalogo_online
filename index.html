@@ -6,68 +6,66 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --gold: #c5a059; --black: #000000; }
-        body { background: var(--black); color: white; font-family: 'Montserrat', sans-serif; }
+        body { background: var(--black); color: white; font-family: 'Montserrat', sans-serif; margin: 0; }
         #lista-imoveis { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; padding: 20px; }
         .card { border: 1px solid #333; position: relative; cursor: pointer; }
         .admin-tools { display: none; position: absolute; top: 10px; z-index: 10; width: 100%; justify-content: space-between; padding: 0 10px; box-sizing: border-box; }
         .is-admin .admin-tools { display: flex; }
-        .modal { display: none; position: fixed; top:0; left:0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; justify-content: center; align-items: center; }
-        .modal-content { background: #111; padding: 20px; width: 80%; max-width: 600px; }
+        .modal { display: none; position: fixed; top:0; left:0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 9999; justify-content: center; align-items: center; }
+        .modal-content { background: #111; padding: 30px; width: 90%; max-width: 500px; border: 1px solid var(--gold); }
+        input { width: 100%; padding: 10px; margin: 10px 0; background: #000; border: 1px solid #333; color: white; }
+        .btn-gold { width: 100%; padding: 15px; background: var(--gold); border: none; cursor: pointer; }
     </style>
 </head>
 <body id="main-body">
 
-<header style="padding: 20px; text-align: center;">
+<header style="padding: 20px; display: flex; gap: 20px; justify-content: center;">
     <button onclick="abrirModal('modal-add')">Adicionar Imóvel</button>
     <button onclick="abrirModal('modal-login')">Painel ADM</button>
 </header>
 
 <div id="lista-imoveis"></div>
 
-<div id="modal-detalhes" class="modal" onclick="fecharModal('modal-detalhes')">
-    <div class="modal-content" onclick="event.stopPropagation()">
-        <div id="conteudo-midia"></div>
-        <button onclick="exibirFotos()">Ver Fotos</button>
-        <button id="btn-video">Ver Vídeo</button>
-    </div>
-</div>
+<div id="modal-login" class="modal"><div class="modal-content"><input type="password" id="senha" placeholder="Senha"><button class="btn-gold" onclick="verificarSenha()">Entrar</button></div></div>
 
 <div id="modal-add" class="modal">
     <div class="modal-content">
         <input type="text" id="cidade" placeholder="Cidade">
-        <input type="file" id="file-upload" multiple>
-        <button onclick="salvarImovel()">Salvar</button>
+        <input type="number" id="quartos" placeholder="Suítes">
+        <input type="number" id="unidades" placeholder="Vagas">
+        <input type="text" id="video" placeholder="Link do Vídeo">
+        <input type="file" id="files" multiple>
+        <button class="btn-gold" onclick="salvarImovel()">Salvar</button>
     </div>
 </div>
 
-<div id="modal-login" class="modal">
-    <div class="modal-content">
-        <input type="password" id="senha" placeholder="Senha">
-        <button onclick="verificarSenha()">Entrar</button>
+<div id="modal-detalhes" class="modal" onclick="fecharModal('modal-detalhes')">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <div id="detalhes-view"></div>
     </div>
 </div>
 
 <script>
-    const supabase = supabase.createClient('URL', 'KEY');
-    let listaImoveis = [];
+    const supabase = supabase.createClient('SUA_URL', 'SUA_KEY');
 
     async function carregarImoveis() {
         const { data } = await supabase.from('imoveis').select('*');
-        listaImoveis = data;
-        document.getElementById('lista-imoveis').innerHTML = data.map(im => `
-            <div class="card" onclick="abrirDetalhes(${im.id})">
+        document.getElementById('lista-imoveis').innerHTML = (data || []).map(im => `
+            <div class="card">
                 <div class="admin-tools">
                     <span onclick="event.stopPropagation(); editar(${im.id})">✏️</span>
                     <span onclick="event.stopPropagation(); excluir(${im.id})">🗑️</span>
                 </div>
-                <img src="${im.fotos[0]}" style="width:100%; height:200px; object-fit:cover;">
-                <h3>${im.cidade}</h3>
+                <div onclick="abrirDetalhes(${im.id})">
+                    <img src="${im.fotos ? im.fotos[0] : ''}" style="width:100%; height:200px; object-fit:cover;">
+                    <h3>${im.cidade}</h3>
+                </div>
             </div>
         `).join('');
     }
 
     async function salvarImovel() {
-        const files = document.getElementById('file-upload').files;
+        const files = document.getElementById('files').files;
         let urls = [];
         for(let file of files) {
             const { data } = await supabase.storage.from('fotos-imoveis').upload(Date.now() + file.name, file);
@@ -76,17 +74,28 @@
         }
         await supabase.from('imoveis').insert([{ 
             cidade: document.getElementById('cidade').value, 
+            quartos: document.getElementById('quartos').value,
+            unidades: document.getElementById('unidades').value,
+            video: document.getElementById('video').value,
             fotos: urls 
         }]);
-        carregarImoveis();
-        fecharModal('modal-add');
+        carregarImoveis(); fecharModal('modal-add');
     }
 
     function abrirDetalhes(id) {
-        const im = listaImoveis.find(x => x.id === id);
-        document.getElementById('conteudo-midia').innerHTML = `<img src="${im.fotos[0]}" style="width:100%">`;
-        document.getElementById('btn-video').onclick = () => window.open(im.video, '_blank');
+        const im = data.find(x => x.id === id); // Certifique-se de ter a variável 'data' salva
+        document.getElementById('detalhes-view').innerHTML = `
+            <button onclick="verFotos()">Ver Fotos</button>
+            <button onclick="window.open('${im.video}', '_blank')">Ver Vídeo</button>
+        `;
         abrirModal('modal-detalhes');
+    }
+
+    async function excluir(id) {
+        if(confirm("Confirmar exclusão?")) {
+            await supabase.from('imoveis').delete().eq('id', id);
+            carregarImoveis();
+        }
     }
 
     function verificarSenha() {
