@@ -50,15 +50,8 @@
         .insta-icon { height: 24px; filter: invert(1); opacity: 0.8; transition: 0.3s; }
         .insta-icon:hover { opacity: 1; transform: scale(1.1); }
 
-        .hero {
-            text-align: center;
-            padding: 50px 20px;
-            background: var(--black);
-        }
-        .hero-logo-grande {
-            max-width: 450px;
-            margin-bottom: 10px;
-        }
+        .hero { text-align: center; padding: 50px 20px; background: var(--black); }
+        .hero-logo-grande { max-width: 450px; margin-bottom: 10px; }
         .hero h1 {
             font-family: 'Playfair Display', serif;
             font-size: 3.8rem;
@@ -66,19 +59,8 @@
             margin: 0;
             font-weight: 700;
         }
-        .hero p {
-            letter-spacing: 5px;
-            font-size: 14px;
-            text-transform: uppercase;
-            font-weight: 300;
-            margin-top: 10px;
-        }
-        .gold-line {
-            width: 120px;
-            height: 1px;
-            background: var(--gold);
-            margin: 30px auto;
-        }
+        .hero p { letter-spacing: 5px; font-size: 14px; text-transform: uppercase; font-weight: 300; margin-top: 10px; }
+        .gold-line { width: 120px; height: 1px; background: var(--gold); margin: 30px auto; }
 
         #lista-imoveis {
             display: grid;
@@ -126,13 +108,8 @@
         .is-admin .admin-controls { display: flex; }
 
         .btn-tool { 
-            width: 35px; 
-            height: 35px; 
-            border-radius: 50%; 
-            border: none; 
-            cursor: pointer; 
-            background: rgba(0,0,0,0.8); 
-            color: white; 
+            width: 35px; height: 35px; border-radius: 50%; border: none; 
+            cursor: pointer; background: rgba(0,0,0,0.8); color: white; 
             border: 1px solid var(--gold); 
         }
 
@@ -160,14 +137,11 @@
             line-height: 2;
         }
 
-        /* MODAIS - CORRIGIDO */
         .modal { 
             display: none; 
             position: fixed; 
-            top: 0; 
-            left: 0; 
-            width: 100%; 
-            height: 100%; 
+            top: 0; left: 0; 
+            width: 100%; height: 100%; 
             background: rgba(0,0,0,0.98); 
             justify-content: center; 
             align-items: center; 
@@ -238,7 +212,7 @@
 <div id="modal-login" class="modal">
     <div class="modal-content">
         <h2 style="color:var(--gold)">ACESSO ADM</h2>
-        <input type="email" id="emailAdmin" placeholder="E-mail" value="">
+        <input type="email" id="emailAdmin" placeholder="E-mail">
         <input type="password" id="senhaAdmin" placeholder="Senha">
         <button class="btn-gold" onclick="fazerLogin()">Entrar</button>
         <button onclick="fecharModal('modal-login')" style="background:none; border:none; color:grey; margin-top:15px; cursor:pointer;">Voltar</button>
@@ -261,7 +235,6 @@
     </div>
 </div>
 
-<!-- Modal Escolha e Carousel (mantidos) -->
 <div id="modal-escolha" class="modal">
     <div class="modal-content">
         <h2 style="color:var(--gold)">DETALHES</h2>
@@ -287,49 +260,45 @@
     const SUPABASE_URL = 'https://ohjtosiyfwxzkgeewizv.supabase.co';
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9oanRvc2l5Znd4emtnZWV3aXp2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2MjA4MzcsImV4cCI6MjA5MjE5NjgzN30.4d_NcCXDUMq9JdAETvssI8bv5WY3c5F4hzEVnL9XjdY";
 
-    const supabase = Supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    // CORREÇÃO: Usamos supabaseClient (não pode ser 'supabase')
+    const supabaseClient = Supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     let fotosTemp = [];
     let imovelAtual = null;
     let fotoIndice = 0;
     let isAdmin = false;
 
-    // ==================== LOGIN ADM ====================
+    // ==================== LOGIN ====================
     async function fazerLogin() {
         const email = document.getElementById('emailAdmin').value.trim();
         const senha = document.getElementById('senhaAdmin').value;
 
         if (!email || !senha) {
-            alert("Por favor, preencha o e-mail e a senha.");
+            alert("Preencha e-mail e senha!");
             return;
         }
 
         try {
-            const { data, error } = await supabase.auth.signInWithPassword({
-                email: email,
-                password: senha
-            });
+            const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password: senha });
 
             if (error) {
-                console.error("Erro de login:", error);
-                alert("Erro ao fazer login: " + error.message);
+                alert("Erro no login: " + error.message);
+                console.error(error);
             } else {
-                console.log("Login bem-sucedido:", data);
                 isAdmin = true;
                 document.getElementById('main-body').classList.add('is-admin');
                 fecharModal('modal-login');
                 renderizar();
-                alert("Login realizado com sucesso! Agora você pode adicionar e editar imóveis.");
+                alert("Login realizado com sucesso!");
             }
         } catch (err) {
-            console.error("Exceção no login:", err);
-            alert("Ocorreu um erro inesperado. Verifique o console (F12).");
+            console.error(err);
+            alert("Erro inesperado. Abra o console (F12) e me envie a mensagem.");
         }
-
         document.getElementById('senhaAdmin').value = '';
     }
 
-    // ==================== COMPRESSÃO DE IMAGENS ====================
+    // ==================== COMPRESSÃO DE FOTOS ====================
     async function comprimirImagem(file) {
         return new Promise((resolve) => {
             const reader = new FileReader();
@@ -355,12 +324,10 @@
         const btn = document.getElementById('btn-publicar');
         btn.disabled = true;
         btn.innerText = "PROCESSANDO...";
-
         fotosTemp = [];
         for (let file of e.target.files) {
             fotosTemp.push(await comprimirImagem(file));
         }
-
         document.getElementById('status-fotos').innerText = fotosTemp.length + " foto(s) carregada(s).";
         btn.disabled = false;
         btn.innerText = "Confirmar";
@@ -378,41 +345,40 @@
         };
 
         if (!dados.cidade || dados.fotos.length === 0) {
-            alert("Nome do empreendimento e pelo menos uma foto são obrigatórios!");
+            alert("Nome do empreendimento e pelo menos 1 foto são obrigatórios!");
             return;
         }
 
         try {
             let result;
             if (id) {
-                result = await supabase.from('imoveis').update(dados).eq('id', id);
+                result = await supabaseClient.from('imoveis').update(dados).eq('id', id);
             } else {
-                result = await supabase.from('imoveis').insert([dados]);
+                result = await supabaseClient.from('imoveis').insert([dados]);
             }
 
             if (result.error) {
                 alert("Erro ao salvar: " + result.error.message);
-                console.error(result.error);
             } else {
-                alert(id ? "Imóvel atualizado com sucesso!" : "Imóvel adicionado com sucesso!");
+                alert(id ? "Imóvel atualizado!" : "Imóvel adicionado com sucesso!");
                 fecharModal('modal-add');
                 renderizar();
             }
         } catch (err) {
             console.error(err);
-            alert("Erro inesperado ao salvar. Veja o console.");
+            alert("Erro inesperado ao salvar.");
         }
     }
 
-    // ==================== CARREGAR E RENDERIZAR ====================
+    // ==================== CARREGAR IMÓVEIS ====================
     async function carregarImoveis() {
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
             .from('imoveis')
             .select('*')
             .order('created_at', { ascending: false });
 
         if (error) {
-            console.error("Erro ao carregar imóveis:", error);
+            console.error("Erro ao carregar:", error);
             return [];
         }
         return data || [];
@@ -422,18 +388,14 @@
         const imoveis = await carregarImoveis();
         const grid = document.getElementById('lista-imoveis');
 
-        if (imoveis.length === 0) {
-            grid.innerHTML = `<p style="grid-column:1/-1;text-align:center;color:#777;padding:40px;">Nenhum imóvel cadastrado ainda.</p>`;
-            return;
-        }
-
         grid.innerHTML = imoveis.map(im => `
             <div class="card">
                 <div class="admin-controls">
                     <button class="btn-tool" onclick="editarImovel('${im.id}')">✎</button>
                     <button class="btn-tool" onclick="excluirImovel('${im.id}')">🗑</button>
                 </div>
-                <img src="${im.fotos && im.fotos[0] ? im.fotos[0] : ''}" onclick="prepararEscolha('${im.id}')" alt="${im.cidade}">
+                <img src="${im.fotos && im.fotos[0] ? im.fotos[0] : 'https://via.placeholder.com/350x400?text=Sem+Foto'}" 
+                     onclick="prepararEscolha('${im.id}')" alt="${im.cidade}">
                 <div class="card-info">
                     <h3>${im.cidade}</h3>
                     <p>${im.quartos} SUÍTES • ${im.unidades} VAGAS</p>
@@ -443,11 +405,8 @@
     }
 
     async function editarImovel(id) {
-        const { data, error } = await supabase.from('imoveis').select('*').eq('id', id).single();
-        if (error || !data) {
-            alert("Erro ao carregar imóvel para edição.");
-            return;
-        }
+        const { data, error } = await supabaseClient.from('imoveis').select('*').eq('id', id).single();
+        if (error || !data) return alert("Erro ao carregar imóvel");
 
         abrirModal('modal-add');
         document.getElementById('edit-id').value = data.id;
@@ -460,28 +419,20 @@
     }
 
     async function excluirImovel(id) {
-        if (!confirm("Deseja realmente excluir este imóvel?")) return;
-
-        const { error } = await supabase.from('imoveis').delete().eq('id', id);
-        if (error) {
-            alert("Erro ao excluir: " + error.message);
-        } else {
-            renderizar();
-        }
+        if (!confirm("Excluir este imóvel?")) return;
+        const { error } = await supabaseClient.from('imoveis').delete().eq('id', id);
+        if (error) alert("Erro ao excluir: " + error.message);
+        else renderizar();
     }
 
     function abrirModal(id) {
-        if (id === 'modal-add' && !document.getElementById('edit-id').value) {
-            limparForm();
-        }
+        if (id === 'modal-add' && !document.getElementById('edit-id').value) limparForm();
         document.getElementById(id).style.display = 'flex';
     }
 
     function fecharModal(id) {
         document.getElementById(id).style.display = 'none';
-        if (id === 'modal-carousel') {
-            document.getElementById('carousel-view').style.display = 'none';
-        }
+        if (id === 'modal-carousel') document.getElementById('carousel-view').style.display = 'none';
     }
 
     function limparForm() {
@@ -495,17 +446,13 @@
         document.getElementById('status-fotos').innerText = '';
     }
 
-    let imoveisCache = [];
     async function prepararEscolha(id) {
         const imoveis = await carregarImoveis();
         imovelAtual = imoveis.find(im => im.id === id);
         if (!imovelAtual) return;
 
         abrirModal('modal-escolha');
-        document.getElementById('btn-ver-video').onclick = () => {
-            if (imovelAtual.video) window.open(imovelAtual.video, '_blank');
-            else alert("Nenhum vídeo cadastrado para este imóvel.");
-        };
+        document.getElementById('btn-ver-video').onclick = () => imovelAtual.video ? window.open(imovelAtual.video, '_blank') : alert("Sem vídeo cadastrado");
         document.getElementById('btn-ver-fotos').onclick = () => {
             fecharModal('modal-escolha');
             fotoIndice = 0;
@@ -516,21 +463,19 @@
     }
 
     function mudarFoto(dir) {
-        if (!imovelAtual || !imovelAtual.fotos || imovelAtual.fotos.length === 0) return;
+        if (!imovelAtual?.fotos?.length) return;
         fotoIndice = (fotoIndice + dir + imovelAtual.fotos.length) % imovelAtual.fotos.length;
         document.getElementById('carousel-img').src = imovelAtual.fotos[fotoIndice];
     }
 
     // ==================== INICIALIZAÇÃO ====================
     window.onload = async () => {
-        // Verifica se já está logado (sessão persistente)
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session } } = await supabaseClient.auth.getSession();
         if (session) {
             isAdmin = true;
             document.getElementById('main-body').classList.add('is-admin');
         }
-
-        await renderizar();
+        renderizar();
     };
 </script>
 </body>
