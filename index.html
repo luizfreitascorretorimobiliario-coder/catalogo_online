@@ -91,10 +91,50 @@
     </div>
 </div>
 
+<div id="modal-galeria" class="modal">
+    <div class="modal-content" style="max-width: 800px;">
+        <h2 id="titulo-galeria" style="color:var(--gold)">Galeria</h2>
+        <div style="position: relative;">
+            <img id="img-exibicao" src="" style="width:100%; max-height: 500px; object-fit: contain;">
+            <button class="btn-action" style="position: absolute; left: 0; top: 50%;" onclick="mudarFoto(-1)">❮</button>
+            <button class="btn-action" style="position: absolute; right: 0; top: 50%;" onclick="mudarFoto(1)">❯</button>
+        </div>
+        <button class="btn-sec" onclick="fecharModal('modal-galeria')">Fechar Galeria</button>
+    </div>
+</div>
+    
 <script>
     // Inicialização
     let imoveis = JSON.parse(localStorage.getItem('luxuryImoveis')) || [];
     let imovelSelecionado = null;
+
+    let fotosAtuais = [];
+let indiceFoto = 0;
+
+function abrirGaleria() {
+    // Verifica se existem fotos no objeto selecionado
+    if (imovelSelecionado && imovelSelecionado.fotos && imovelSelecionado.fotos.length > 0) {
+        fotosAtuais = imovelSelecionado.fotos;
+        indiceFoto = 0;
+        
+        // Atualiza a imagem e abre o modal
+        document.getElementById('img-exibicao').src = fotosAtuais[indiceFoto];
+        fecharModal('modal-selecao'); // Fecha o menu de escolha
+        abrirModal('modal-galeria');  // Abre a galeria
+    } else {
+        alert("Este imóvel não possui fotos.");
+    }
+}
+
+function mudarFoto(direcao) {
+    indiceFoto += direcao;
+    
+    // Lógica para não sair dos limites do array de fotos
+    if (indiceFoto >= fotosAtuais.length) indiceFoto = 0;
+    if (indiceFoto < 0) indiceFoto = fotosAtuais.length - 1;
+    
+    document.getElementById('img-exibicao').src = fotosAtuais[indiceFoto];
+}
 
     // Funções de Interface
     function abrirModal(id) { document.getElementById(id).style.display = 'flex'; }
