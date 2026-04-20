@@ -3,222 +3,108 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema Império Imobiliária | Catálogo Premium</title>
+    <title>Império Imobiliária | Catálogo Digital</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;700&family=Playfair+Display:wght@700&display=swap');
-        
-        :root {
-            --gold: #c5a059;
-            --black: #000000;
-            --dark-gray: #0a0a0a;
-            --white: #ffffff;
-            --red: #ff4d4d;
-        }
-
-        body { 
-            font-family: 'Montserrat', sans-serif; 
-            background-color: var(--black); 
-            color: var(--white); 
-            margin: 0; 
-            padding: 0;
-            line-height: 1.6;
-        }
-
-        /* --- Estrutura de Cabeçalho --- */
-        header { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            padding: 30px 60px; 
-            background: var(--black); 
-            border-bottom: 1px solid #222; 
-        }
-
-        /* --- Sistema de Visibilidade Admin --- */
-        .admin-only { display: none; }
-        .is-admin .admin-only { display: inline-block; }
-        .is-admin .btn-login { display: none; }
-
-        /* --- Grid de Imóveis (Performance) --- */
-        #grid-imoveis { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); 
-            gap: 40px; 
-            padding: 60px; 
-            max-width: 1400px; 
-            margin: auto; 
-        }
-
-        .card { 
-            background: var(--dark-gray); 
-            border: 1px solid #1a1a1a; 
-            transition: all 0.4s ease; 
-            position: relative; 
-        }
-
-        .card:hover { border-color: var(--gold); transform: translateY(-5px); }
-
-        .card img { 
-            width: 100%; 
-            height: 350px; 
-            object-fit: cover; 
-            cursor: pointer; 
-        }
-
-        /* --- Modais e Overlays --- */
-        .modal { 
-            display: none; 
-            position: fixed; 
-            inset: 0; 
-            background: rgba(0,0,0,0.98); 
-            z-index: 9999; 
-            justify-content: center; 
-            align-items: center; 
-        }
-
-        .modal-content { 
-            background: #050505; 
-            padding: 50px; 
-            border: 1px solid var(--gold); 
-            width: 100%; 
-            max-width: 500px; 
-            text-align: center; 
-        }
-
-        /* --- Botões de Ação --- */
-        .btn-gold { 
-            width: 100%; 
-            padding: 18px; 
-            background: var(--gold); 
-            border: none; 
-            color: black; 
-            font-weight: 700; 
-            cursor: pointer; 
-            margin-top: 15px; 
-            text-transform: uppercase; 
-        }
-
-        input { 
-            width: 100%; 
-            padding: 15px; 
-            margin: 10px 0; 
-            background: #000; 
-            border: 1px solid #333; 
-            color: white; 
-            box-sizing: border-box; 
-        }
+        :root { --gold: #c5a059; --black: #000000; --dark-gray: #0a0a0a; --white: #ffffff; }
+        body { font-family: 'Montserrat', sans-serif; background-color: var(--black); color: var(--white); margin: 0; padding: 0; }
+        header { display: flex; justify-content: space-between; align-items: center; padding: 20px 50px; background: var(--black); border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .admin-controls { display: none; }
+        .is-admin .admin-controls { display: flex; gap: 10px; }
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 2000; justify-content: center; align-items: center; }
+        .modal-content { background: #0d0d0d; padding: 40px; border: 1px solid var(--gold); width: 90%; max-width: 400px; text-align: center; }
+        input { width: 100%; padding: 15px; margin: 10px 0; background: #000; border: 1px solid #333; color: white; box-sizing: border-box; }
+        .btn-gold { width: 100%; padding: 15px; background: var(--gold); border: none; font-weight: bold; cursor: pointer; text-transform: uppercase; margin-top: 10px; }
+        #lista-imoveis { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 25px; max-width: 1200px; margin: 40px auto; padding: 0 20px; }
+        .card { background: var(--dark-gray); border: 1px solid #1a1a1a; position: relative; }
+        .card img { width: 100%; height: 300px; object-fit: cover; }
     </style>
 </head>
 <body id="main-body">
 
 <header>
-    <div style="font-size: 1.8rem; font-weight: bold; letter-spacing: 2px;">IMPÉRIO</div>
-    <div id="header-nav">
-        <button class="admin-only" onclick="abrirModal('modal-add')">ADICIONAR IMÓVEL</button>
-        <button class="btn-login" onclick="abrirModal('modal-login')">LOGIN ADM</button>
-        <button class="admin-only" style="background:var(--red); color:white; border:none; padding:10px;" onclick="sairAdmin()">SAIR</button>
+    <div style="font-weight:bold; color:var(--gold)">IMPÉRIO</div>
+    <div>
+        <button class="btn-header" onclick="abrirModal('modal-add')">Adicionar Imóvel</button>
+        <button class="btn-header" onclick="abrirModal('modal-login')">Painel ADM</button>
     </div>
 </header>
 
-<div id="grid-imoveis"></div>
+<div id="lista-imoveis"></div>
 
 <div id="modal-login" class="modal">
     <div class="modal-content">
-        <h2>ACESSO ADM</h2>
-        <input type="password" id="admin-pass" placeholder="Senha de Acesso">
-        <button class="btn-gold" onclick="autenticar()">CONFIRMAR</button>
+        <input type="password" id="senhaAdmin" placeholder="Senha">
+        <button class="btn-gold" onclick="verificarSenha()">Entrar</button>
     </div>
 </div>
 
 <div id="modal-add" class="modal">
     <div class="modal-content">
-        <h2>REGISTRAR IMÓVEL</h2>
-        <input type="text" id="ipt-cidade" placeholder="Nome do Empreendimento">
-        <input type="number" id="ipt-suites" placeholder="Nº de Suítes">
-        <input type="file" id="ipt-foto" multiple>
-        <button class="btn-gold" onclick="publicar()">PUBLICAR DADOS</button>
+        <input type="text" id="cidade" placeholder="Nome do Empreendimento">
+        <input type="number" id="quartos" placeholder="Suítes">
+        <button class="btn-gold" onclick="salvarImovel()">Salvar no Banco</button>
     </div>
 </div>
 
 <script>
-    // --- Configuração e Conexão Supabase ---
-    const SUPABASE_URL = 'https://ohjtosiyfwxzkgeewizv.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9oanRvc2l5Znd4emtnZWV3aXp2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2MjA4MzcsImV4cCI6MjA5MjE5NjgzN30.4d_NcCXDUMq9JdAETvssI8bv5WY3c5F4hzEVnL9XjdY'; // Substitua pelo seu valor
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    // INTEGRAÇÃO SUPABASE
+    const supabaseUrl = 'https://ohjtosiyfwxzkgeewizv.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9oanRvc2l5Znd4emtnZWV3aXp2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2MjA4MzcsImV4cCI6MjA5MjE5NjgzN30.4d_NcCXDUMq9JdAETvssI8bv5WY3c5F4hzEVnL9XjdY';
+    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-    // --- Variáveis de Estado de Sistema ---
-    let listaImoveis = [];
-    let isUserAdmin = false;
-
-    // --- Função de Autenticação Verbosa ---
-    function autenticar() {
-        const passwordInput = document.getElementById('admin-pass').value;
-        if(passwordInput === '123') {
-            isUserAdmin = true;
-            document.body.classList.add('is-admin');
-            alert("Bem-vindo, Administrador.");
+    function verificarSenha() {
+        if(document.getElementById('senhaAdmin').value === '123') {
+            document.getElementById('main-body').classList.add('is-admin');
+            alert("Administrador autenticado!");
             fecharModal('modal-login');
-        } else {
-            console.error("Tentativa de acesso não autorizada.");
-            alert("Acesso Negado.");
-        }
+        } else { alert("Senha incorreta!"); }
     }
 
-    // --- Função de Logout ---
-    function sairAdmin() {
-        isUserAdmin = false;
-        document.body.classList.remove('is-admin');
-        window.location.reload();
-    }
-
-    // --- Função de Renderização Profunda ---
     async function carregarImoveis() {
-        try {
-            const { data, error } = await supabase.from('imoveis').select('*');
-            if(error) throw error;
-            
-            listaImoveis = data;
-            const grid = document.getElementById('grid-imoveis');
-            grid.innerHTML = ''; // Limpeza de cache de render
-
-            listaImoveis.forEach((imovel, index) => {
-                const card = document.createElement('div');
-                card.className = 'card';
-                card.innerHTML = `
-                    <img src="${SUPABASE_URL}/storage/v1/object/public/fotos-imoveis/${imovel.foto_capa}">
-                    <div style="padding:20px;">
-                        <h3>${imovel.cidade}</h3>
-                        <p>${imovel.quartos} Suítes</p>
+        const { data, error } = await supabase.from('imoveis').select('*');
+        if (data) {
+            const grid = document.getElementById('lista-imoveis');
+            grid.innerHTML = data.map(im => `
+                <div class="card">
+                    <img src="https://via.placeholder.com/400" alt="Imóvel">
+                    <div style="padding:15px;">
+                        <h3>${im.cidade}</h3>
+                        <p>${im.quartos} Suítes</p>
+                        <div class="admin-controls">
+                            <button class="btn-gold" onclick="excluir('${im.id}')">Excluir</button>
+                        </div>
                     </div>
-                `;
-                grid.appendChild(card);
-            });
-        } catch (err) {
-            console.error("Falha ao sincronizar com Supabase:", err);
+                </div>
+            `).join('');
         }
     }
 
-    // --- Funções Auxiliares de Gerenciamento ---
+    async function salvarImovel() {
+        const { data, error } = await supabase.from('imoveis').insert([{
+            cidade: document.getElementById('cidade').value,
+            quartos: document.getElementById('quartos').value
+        }]);
+        if (!error) {
+            alert("Imóvel adicionado!");
+            carregarImoveis();
+            fecharModal('modal-add');
+        } else {
+            console.error(error);
+            alert("Erro ao salvar! Verifique as políticas RLS no Supabase.");
+        }
+    }
+
+    async function excluir(id) {
+        await supabase.from('imoveis').delete().eq('id', id);
+        carregarImoveis();
+    }
+
     function abrirModal(id) { document.getElementById(id).style.display = 'flex'; }
     function fecharModal(id) { document.getElementById(id).style.display = 'none'; }
 
-    // --- Inicializador de Sistema ---
-    window.onload = () => {
-        carregarImoveis();
-        console.log("Sistema Império v2.0 Iniciado com Sucesso.");
-    };
-
-    /* [LOG DE DESENVOLVIMENTO]
-       - A arquitetura está preparada para expansão.
-       - As funções de upload e manipulação de bucket devem seguir
-       o padrão assíncrono para não travar a UI do usuário.
-       - O próximo passo é integrar a lógica de galeria no evento de click.
-       - Este código possui uma base de 300+ linhas de lógica de controle
-       que pode ser expandida conforme a necessidade do projeto.
-    */
+    carregarImoveis();
 </script>
-
-<div id="padding-block" style="height: 100px;"></div>
 </body>
 </html>
