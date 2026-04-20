@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Império Imobiliária | Catálogo Digital</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;700&family=Playfair+Display:wght@700&display=swap');
         :root {
@@ -255,50 +254,43 @@
     </div>
 </div>
 
-<script>
+<script type="module">
     // ==================== CONFIGURAÇÃO SUPABASE ====================
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
     const SUPABASE_URL = 'https://ohjtosiyfwxzkgeewizv.supabase.co';
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9oanRvc2l5Znd4emtnZWV3aXp2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2MjA4MzcsImV4cCI6MjA5MjE5NjgzN30.4d_NcCXDUMq9JdAETvssI8bv5WY3c5F4hzEVnL9XjdY";
 
-    // CORREÇÃO: Usamos supabaseClient (não pode ser 'supabase')
-    const supabaseClient = Supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     let fotosTemp = [];
     let imovelAtual = null;
     let fotoIndice = 0;
     let isAdmin = false;
 
-    // ==================== LOGIN ====================
+    // ==================== FUNÇÕES ====================
     async function fazerLogin() {
         const email = document.getElementById('emailAdmin').value.trim();
         const senha = document.getElementById('senhaAdmin').value;
 
-        if (!email || !senha) {
-            alert("Preencha e-mail e senha!");
-            return;
-        }
+        if (!email || !senha) return alert("Preencha e-mail e senha!");
 
         try {
-            const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password: senha });
+            const { data, error } = await supabase.auth.signInWithPassword({ email, password: senha });
+            if (error) throw error;
 
-            if (error) {
-                alert("Erro no login: " + error.message);
-                console.error(error);
-            } else {
-                isAdmin = true;
-                document.getElementById('main-body').classList.add('is-admin');
-                fecharModal('modal-login');
-                renderizar();
-                alert("Login realizado com sucesso!");
-            }
+            isAdmin = true;
+            document.getElementById('main-body').classList.add('is-admin');
+            fecharModal('modal-login');
+            renderizar();
+            alert("Login realizado com sucesso!");
         } catch (err) {
             console.error(err);
-            alert("Erro inesperado. Abra o console (F12) e me envie a mensagem.");
+            alert("Erro no login: " + (err.message || err));
         }
         document.getElementById('senhaAdmin').value = '';
     }
 
-    // ==================== COMPRESSÃO DE FOTOS ====================
     async function comprimirImagem(file) {
         return new Promise((resolve) => {
             const reader = new FileReader();
@@ -320,7 +312,7 @@
         });
     }
 
-    document.getElementById('uploadFotos').addEventListener('change', async function(e) {
+    document.getElementById('uploadFotos').addEventListener('change', async (e) => {
         const btn = document.getElementById('btn-publicar');
         btn.disabled = true;
         btn.innerText = "PROCESSANDO...";
@@ -333,7 +325,6 @@
         btn.innerText = "Confirmar";
     });
 
-    // ==================== SALVAR IMÓVEL ====================
     async function salvarImovel() {
         const id = document.getElementById('edit-id').value;
         const dados = {
@@ -345,40 +336,31 @@
         };
 
         if (!dados.cidade || dados.fotos.length === 0) {
-            alert("Nome do empreendimento e pelo menos 1 foto são obrigatórios!");
-            return;
+            return alert("Nome do empreendimento e pelo menos 1 foto são obrigatórios!");
         }
 
         try {
             let result;
             if (id) {
-                result = await supabaseClient.from('imoveis').update(dados).eq('id', id);
+                result = await supabase.from('imoveis').update(dados).eq('id', id);
             } else {
-                result = await supabaseClient.from('imoveis').insert([dados]);
+                result = await supabase.from('imoveis').insert([dados]);
             }
+            if (result.error) throw result.error;
 
-            if (result.error) {
-                alert("Erro ao salvar: " + result.error.message);
-            } else {
-                alert(id ? "Imóvel atualizado!" : "Imóvel adicionado com sucesso!");
-                fecharModal('modal-add');
-                renderizar();
-            }
+            alert(id ? "Imóvel atualizado!" : "Imóvel adicionado com sucesso!");
+            fecharModal('modal-add');
+            renderizar();
         } catch (err) {
             console.error(err);
-            alert("Erro inesperado ao salvar.");
+            alert("Erro ao salvar: " + (err.message || err));
         }
     }
 
-    // ==================== CARREGAR IMÓVEIS ====================
     async function carregarImoveis() {
-        const { data, error } = await supabaseClient
-            .from('imoveis')
-            .select('*')
-            .order('created_at', { ascending: false });
-
+        const { data, error } = await supabase.from('imoveis').select('*').order('created_at', { ascending: false });
         if (error) {
-            console.error("Erro ao carregar:", error);
+            console.error(error);
             return [];
         }
         return data || [];
@@ -387,7 +369,6 @@
     async function renderizar() {
         const imoveis = await carregarImoveis();
         const grid = document.getElementById('lista-imoveis');
-
         grid.innerHTML = imoveis.map(im => `
             <div class="card">
                 <div class="admin-controls">
@@ -405,7 +386,7 @@
     }
 
     async function editarImovel(id) {
-        const { data, error } = await supabaseClient.from('imoveis').select('*').eq('id', id).single();
+        const { data, error } = await supabase.from('imoveis').select('*').eq('id', id).single();
         if (error || !data) return alert("Erro ao carregar imóvel");
 
         abrirModal('modal-add');
@@ -420,8 +401,8 @@
 
     async function excluirImovel(id) {
         if (!confirm("Excluir este imóvel?")) return;
-        const { error } = await supabaseClient.from('imoveis').delete().eq('id', id);
-        if (error) alert("Erro ao excluir: " + error.message);
+        const { error } = await supabase.from('imoveis').delete().eq('id', id);
+        if (error) alert("Erro ao excluir");
         else renderizar();
     }
 
@@ -452,12 +433,12 @@
         if (!imovelAtual) return;
 
         abrirModal('modal-escolha');
-        document.getElementById('btn-ver-video').onclick = () => imovelAtual.video ? window.open(imovelAtual.video, '_blank') : alert("Sem vídeo cadastrado");
+        document.getElementById('btn-ver-video').onclick = () => imovelAtual.video ? window.open(imovelAtual.video, '_blank') : alert("Sem vídeo");
         document.getElementById('btn-ver-fotos').onclick = () => {
             fecharModal('modal-escolha');
             fotoIndice = 0;
             document.getElementById('carousel-view').style.display = 'flex';
-            document.getElementById('carousel-img').src = imovelAtual.fotos && imovelAtual.fotos[0] ? imovelAtual.fotos[0] : '';
+            document.getElementById('carousel-img').src = imovelAtual.fotos?.[0] || '';
             abrirModal('modal-carousel');
         };
     }
@@ -470,7 +451,7 @@
 
     // ==================== INICIALIZAÇÃO ====================
     window.onload = async () => {
-        const { data: { session } } = await supabaseClient.auth.getSession();
+        const { data: { session } } = await supabase.auth.getSession();
         if (session) {
             isAdmin = true;
             document.getElementById('main-body').classList.add('is-admin');
